@@ -1,3 +1,5 @@
 *.pyc
 *.save
 *.tbx
+prt_times.in
+
