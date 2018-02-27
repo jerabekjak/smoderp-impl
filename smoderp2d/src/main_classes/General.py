@@ -358,7 +358,7 @@ def initLinux():
     Globals.array_points = array_points
     Globals.combinatIndex = combinatIndex
     Globals.mat_pi  = mat_pi
-    Globals.mat_ppl = mat_ppl
+    Globals.mat_ppl = mat_ppl/1000.0
     Globals.surface_retention = surface_retention
     Globals.mat_inf_index = mat_inf_index
     Globals.mat_hcrit = mat_hcrit
@@ -455,7 +455,7 @@ def initWin():
     Globals.array_points = array_points
     Globals.combinatIndex = combinatIndex
     Globals.mat_pi  = mat_pi
-    Globals.mat_ppl = mat_ppl
+    Globals.mat_ppl = mat_ppl/1000.0
     Globals.surface_retention = surface_retention
     Globals.mat_inf_index = mat_inf_index
     Globals.mat_hcrit = mat_hcrit
