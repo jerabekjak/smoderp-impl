@@ -34,9 +34,12 @@ import sys
 
 
 
-from smoderp2d.src.main_classes.General       import Globals as Gl
+from smoderp2d.src.main_classes.General       import Globals
 from smoderp2d.src.main_classes.Vegetation    import Vegetation
 from smoderp2d.src.main_classes.Surface       import Surface
+from smoderp2d.src.main_classes.Solve         import ImplicitSolver
+
+
 
 from smoderp2d.src.main_classes.Subsurface    import Subsurface
 from smoderp2d.src.main_classes.CumulativeMax import Cumulative
@@ -57,12 +60,38 @@ from smoderp2d.src.tools.tools             import get_argv
 
 
 def init_classes():
-  
-  
+
+  import time
+  gl=Globals()
+  delta_t = gl.get_max_dt()
   
   isRill, subflow, stream, diffuse, = comp_type()
+  
+  courant = Courant()
+  courant.set_time_step(delta_t)
+  
+  IS = ImplicitSolver()
+  
+  
+  t1 = time.time()
+  IS.solveStep(delta_t)
+  print 'IS.total_time' , IS.total_time
+  
+  
+  while (IS.total_time/60 < 20):
+    IS.hold = IS.hnew.copy()
+    IS.solveStep(delta_t)
+    print 'IS.total_time' , IS.total_time
+  
+    
+  print '\n\ncely vypocet', time.time()-t1
+  
+  
+  
+  raw_input('...')
+  return IS, courant
 
-
+  """
   times_prt = TimesPrt()
 
 
@@ -74,7 +103,7 @@ def init_classes():
   maxIter = 40
 
 
-  rain_arr = Vegetation(Gl.r,Gl.c,Gl.mat_ppl,Gl.mat_pi/1000.0)
+  rain_arr = Vegetation(Gl.r,Gl.c,Gl.mat_ppl,Gl.mat_pi)
 
 
   surface = Surface(Gl.r,Gl.c,Gl.mat_reten,Gl.mat_inf_index,Gl.mat_hcrit,Gl.mat_aa,Gl.mat_b)
@@ -89,9 +118,7 @@ def init_classes():
   
   
   
-  courant = Courant()
-  delta_t = courant.initial_time_step(surface)
-  courant.set_time_step(delta_t)
+
 
 
   prt.message('Corrected time step is', delta_t, '[s]')
@@ -124,27 +151,60 @@ def init_classes():
   hydrographs.write_hydrographs_record(i,j,ratio,0.0,0.0,0,delta_t,total_time,surface,subsurface,0.0,True)
 
 
-
+  
   return delta_t,  times_prt, infiltrationType, total_time, tz, sum_interception, ratio, maxIter, \
     rain_arr, surface, subsurface, cumulative, courant, hydrographs, time_step
  
- 
+  
+  
+  
+  
   prt.message("--------------------- ------------------- ---------------------") 
- 
+  
+  """
   
 class Runoff():
 
   def run(self):
-
+    import smoderp2d.src.flow_algorithm.D8                   as D8_
+    
+    
     # taky se vyresi vztypbi soubory nacteni dat
     # vse se hodi do ogjektu Globals as Gl
-
+    
+    
+    
+    A, courant = init_classes()
+    
+    
+    
+    
+    return 0
+    
+    
+    
+    
+    
     delta_t, times_prt, infiltrationType, total_time, tz, sum_interception, ratio, maxIter, \
     rain_arr, surface, subsurface, cumulative, courant, hydrographs, time_step = init_classes()
 
 
-
-
+    inflows = D8_.new_inflows(Gl.mat_fd)
+    
+    
+    """
+    for i in Gl.rr:
+      for j in Gl.rc[i]:
+        for z in range(len(inflows[i][j])):
+          ax = inflows[i][j][z][0]
+          bx = inflows[i][j][z][1]
+          iax = i+ax
+          jbx = j+bx
+        print Gl.mat_nan[i][j],i,j,inflows[i][j] 
+    """
+    
+    
+    return 0
 
     i = 0
     j = 0
@@ -286,6 +346,10 @@ class Runoff():
         for i, line in enumerate(fp):
           if i >= 11 and i <= 23 :
             prt.message(line.replace("\n",""))
+            
+            
+            
+    return 0  
 
 
 

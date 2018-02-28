@@ -9,15 +9,15 @@ lu-atr: LU
 
 
 [srazka]
-file: indata/srazka.txt
+file: ../smoderp/indata/srazka.txt
 
 
 
 [time]
 #sec
-maxdt: 60
+maxdt:60
 #min
-endtime: 10
+endtime: 20
 
 
 [Other]
@@ -33,10 +33,15 @@ streamtab: C:\Users\jerabj11\Desktop\\4_DS_plocha\\1_data_in\\3_tabs\\tab_stream
 streamtabcode: smoderp
 arcgis: False
 extraout: True
-indata: indata/nuc20-matret.save
+# indata: ../smoderp/indata/trych01.save
+# indata: ../smoderp/indata/trych05.save
+# indata: ../smoderp/indata/nuc20-matret.save
+indata: ../smoderp/indata/konk01.save
+# indata: indata/outdata.save
 #indata/dp-maletau-matret.save
 partialcomp: roff
 debugprt: True
+# printtimes: indata/prttimes.txt
 printtimes: -
 
 

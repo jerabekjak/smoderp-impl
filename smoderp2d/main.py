@@ -79,7 +79,8 @@ def run() :
     from smoderp2d.src.runoff import Runoff
     runoff = Runoff()
     
-    runoff.run()
+    if (runoff.run() == 0) :
+      print 'Alles gute!'
 
 
 

@@ -13,20 +13,11 @@ def set_combinatIndex(newCombinatIndex):
   combinatIndex = newCombinatIndex
 
 
-def philip_infiltration(soil,bil):
+def philip_infiltration(soil,ci):
   #print 'bil v infiltraci', bil
-  for z in combinatIndex:
+  for z in ci:
     if soil == z[0]:
-      infiltration = z[3]
-      if bil < 0:
-        print ("tady5")
-      if infiltration > bil:
-        infiltration = bil
-        bil = 0
-      else:
-        bil = bil - infiltration
-  #print 'bil a inf v infiltraci\n', bil, infiltration
-  return bil, infiltration
+      return z[3]
 
 
 

@@ -3,10 +3,13 @@
 ## SMODERP 2D
 ## Created by Jan Zajicek, FCE, CTU Prague, 2012-2013
 
+
+from smoderp2d.src.main_classes.General    import Globals
+import smoderp2d.src.constants                 as constants
+import smoderp2d.src.io_functions.prt          as prt
+
 import numpy as np
-import smoderp2d.src.constants as constants
 import sys
-import smoderp2d.src.io_functions.prt as prt
 
 # definice erroru  na urovni modulu 
 # 
@@ -106,7 +109,13 @@ def load_precipitation(fh):
 ## Function returns a rainfall amount for current time step
 #  if two or more rainfall records belongs to one time step
 #  the function integrates the rainfall amount.
-def timestepRainfall(iterace,total_time,delta_t,tz,sr):
+def timestepRainfall(total_time,delta_t,tz):
+  gl = Globals()
+
+  iterace = gl.itera
+  sr      = gl.sr
+
+
   z = tz
   # skontroluje jestli neni mimo srazkovy zaznam
   if z > ( iterace - 1 ):

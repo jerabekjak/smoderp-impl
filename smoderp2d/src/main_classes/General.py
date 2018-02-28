@@ -5,6 +5,8 @@
 
 import math
 import sys
+import numpy as np
+
 
 # get_indata is method which reads the input data
 from   smoderp2d.src.tools.resolve_partial_computing import get_indata
@@ -156,6 +158,9 @@ class Globals:
   def get_rrows(self):
     return self.rr
   
+  def get_rcols(self):
+    return self.rc
+  
   def get_bor_rows(self):
     return self.br
   
@@ -198,8 +203,8 @@ class Globals:
   def get_combinatIndex(self):
     return self.combinatIndex
   
-  def get_delta_t(self):
-    return self.delta_t
+  def get_max_dt(self):
+    return self.max_dt
   
   
   def get_mat_pi(self):
@@ -214,18 +219,18 @@ class Globals:
     return self.surface_retention
   
   
-  def get_mat_inf_index(self):
-    return self.mat_inf_index
+  def get_mat_inf_index(self,i,j):
+    return self.mat_inf_index[i][j]
   
   
-  def get_mat_hcrit(self):
-    return self._mat_hcrit
+  def get_hcrit(self,i,j):
+    return self.mat_hcrit[i][j]
   
-  def get_mat_aa(self):
-    return self.mat_aa
+  def get_mat_aa(self,i,j):
+    return self.mat_aa[i][j]
   
-  def get_mat_b(self):
-    return self.mat_b
+  def get_mat_b(self,i,j):
+    return self.mat_b[i][j]
   
   def get_mat_reten(self):
     return self.mat_reten
@@ -296,10 +301,13 @@ class Globals:
   def get_tokyLoc(self):
     return self.tokyLoc
   
+  def get_veg_true(self):
+    return self.tokyLoc
   
   
     
-
+  def set_veg_true(self,vt):
+    self.veg_true = vt
 
 
 ## Init fills the Globals class with values from preprocessing
@@ -389,7 +397,8 @@ def initLinux():
     Globals.tokyLoc = tokyLoc
     Globals.diffuse = comp_type('diffuse')
     Globals.subflow = comp_type('subflow')
-
+    Globals.max_dt = float(get_argv(constants.PARAMETER_MAX_DELTA_T))
+    Globals.veg_true = np.zeros([rows,cols],int)
     return True
 
   else:
@@ -486,6 +495,8 @@ def initWin():
     Globals.tokyLoc = tokyLoc
     Globals.diffuse = comp_type('diffuse')
     Globals.subflow = comp_type('subflow')
+    Globals.max_dt = float(get_argv(constants.PARAMETER_MAX_DELTA_T))
+    Globals.veg_true = np.zeros([rows,cols],int)
 
     return True
 
