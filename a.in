@@ -15,9 +15,9 @@ file: ../smoderp/indata/srazka.txt
 
 [time]
 #sec
-maxdt:60
+maxdt:1
 #min
-endtime: 20
+endtime: 5
 
 
 [Other]

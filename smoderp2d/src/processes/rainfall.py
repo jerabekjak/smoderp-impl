@@ -3,13 +3,12 @@
 ## SMODERP 2D
 ## Created by Jan Zajicek, FCE, CTU Prague, 2012-2013
 
-
-from smoderp2d.src.main_classes.General    import Globals
-import smoderp2d.src.constants                 as constants
-import smoderp2d.src.io_functions.prt          as prt
-
 import numpy as np
+import smoderp2d.src.constants as constants
 import sys
+import smoderp2d.src.io_functions.prt as prt
+from smoderp2d.src.main_classes.General    import Globals
+
 
 # definice erroru  na urovni modulu 
 # 
@@ -151,9 +150,6 @@ def timestepRainfall(total_time,delta_t,tz):
       tz = z
 
   return rainfall, tz
-
-
-  
 
 
 

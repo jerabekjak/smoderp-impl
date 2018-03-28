@@ -287,7 +287,10 @@ class ImplicitSolver:
       
       inf = infilt.philip_infiltration(gl.get_mat_inf_index(i,j),gl.get_combinatIndex())
       
+      if inf >= self.hnew[iel] :
+        inf = self.hnew[iel]
       
+        
       ## toto je pokazde stejne
       #indptr = [0]
       ## toto je pokazde stejne
@@ -295,11 +298,20 @@ class ImplicitSolver:
       
       # jen toto se meni pri plneni
       
-      data.append((1./dt + a*self.hnew[iel]**(b-1)))
+      
+      if self.hnew[iel] > 0 :
+        data.append((1./dt + gl.dx*a*self.hnew[iel]**(b-1)/gl.pixel_area))
+      else :
+        data.append((1./dt))
+        
       for inel in self.ELinEL_l[iel]:
-         data.append(-(a*self.hnew[inel]**(b-1)))
+        if self.hnew[inel] > 0 :
+          data.append(-(gl.dx*a*self.hnew[inel]**(b-1)/gl.pixel_area))
+        else :
+          data.append(0)
 
       #print data  
+      
       """
       self.A[iel,iel] = (1./dt + a*self.hnew[iel]**(b-1))
       for inel in self.ELinEL_l[iel]:
@@ -311,8 +323,10 @@ class ImplicitSolver:
           pass
       """
 
-        
-      self.b[iel] = self.hold[iel]/dt + PS - inf
+      #if self.hnew[iel] > 0 :
+      self.b[iel] = self.hold[iel]/dt + PS/dt - inf/dt
+      #else :
+        #self.b[iel] = self.hold[iel]/dt
       
       
     self.A = csr_matrix((data, self.indices, self.indptr), shape=(self.nEl, self.nEl), dtype=float)
@@ -335,23 +349,25 @@ class ImplicitSolver:
     from scipy.sparse.linalg import spsolve
     #print 'asdf'
     iter_  = 1
+    maxIter = 20
     hewp = self.hnew.copy()
     hewp.fill(0.0)
-    while (np.sum((hewp-self.hnew)**2.) > 0.01):
-      print iter_
+    while (abs(np.sum((hewp-self.hnew))) > 0.00000001):
+      #print iter_
       iter_ += 1
       t1 = time.time()
       self.fillAmat(dt)
-      print 'plnim za \t', time.time()-t1
+      #print 'plnim za \t', time.time()-t1
       t1 = time.time()
       hewp = self.hnew.copy()
-      #self.hnew = np.linalg.solve(self.A,self.b)
+      #sel.hnew = np.linalg.solve(self.A,self.b)
       self.hnew = spsolve(self.A,self.b)
-      #print self.hnew
-      print 'spoctnu za \t', time.time()-t1
-      print 'error', np.sum((hewp-self.hnew)**2.)
+      if (iter_ > maxIter) : break
+      #print 'spoctnu za \t', time.time()-t1
+      #print 'error', np.sum((hewp-self.hnew)**2.)
       
   
+    print self.hnew[1],  self.hnew[99] 
     self.total_time += dt
     make_sur_raster(self,'out',self.total_time)
 

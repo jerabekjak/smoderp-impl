@@ -47,7 +47,7 @@
 def run() :
   
 
-  import smoderp2d.src.io_functions.prttxtlogo
+  #import smoderp2d.src.io_functions.prttxtlogo
   
   import platform
   # init class contains global variables
@@ -74,13 +74,16 @@ def run() :
   ok = init()
   
   
+  
+  
   if ((ok)) :
     # runoff.run() starts the computation
     from smoderp2d.src.runoff import Runoff
     runoff = Runoff()
     
     if (runoff.run() == 0) :
-      print 'Alles gute!'
+      pass
+      #print 'Alles gute!'
 
 
 

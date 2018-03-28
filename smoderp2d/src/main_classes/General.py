@@ -5,11 +5,8 @@
 
 import math
 import sys
-import numpy as np
 
 
-# get_indata is method which reads the input data
-from   smoderp2d.src.tools.resolve_partial_computing import get_indata
 # get type of computing identifier based on the string
 from   smoderp2d.src.tools.tools                     import comp_type
 
@@ -140,7 +137,7 @@ class Globals:
   ## ???
   cell_stream = None
   ## raster contains the reach id data
-  mat_tok_usek = None
+  mat_tok_reach = None
   ## ???
   STREAM_RATIO = None
   ## ???
@@ -203,34 +200,29 @@ class Globals:
   def get_combinatIndex(self):
     return self.combinatIndex
   
-  def get_max_dt(self):
-    return self.max_dt
-  
+  def get_delta_t(self):
+    return self.delta_t
   
   def get_mat_pi(self):
     return self.mat_pi
   
-  
   def get_mat_ppl(self):
     return self.mat_ppl
-  
   
   def get_surface_retention(self):
     return self.surface_retention
   
-  
   def get_mat_inf_index(self,i,j):
     return self.mat_inf_index[i][j]
   
+  def get_mat_hcrit(self):
+    return self._mat_hcrit
   
-  def get_hcrit(self,i,j):
-    return self.mat_hcrit[i][j]
+  def get_mat_aa(self):
+    return self.mat_aa
   
-  def get_mat_aa(self,i,j):
-    return self.mat_aa[i][j]
-  
-  def get_mat_b(self,i,j):
-    return self.mat_b[i][j]
+  def get_mat_b(self):
+    return self.mat_b
   
   def get_mat_reten(self):
     return self.mat_reten
@@ -244,8 +236,8 @@ class Globals:
   def get_mat_efect_vrst(self):
     return self.mat_efect_vrst
   
-  def get_mat_slope(self):
-    return self.mat_slope
+  def get_mat_slope(self,i,j):
+    return self.mat_slope[i][j]
   
   def get_mat_nan(self):
     return self.mat_nan
@@ -253,8 +245,8 @@ class Globals:
   def get_mat_a(self):
     return self.mat_a
   
-  def get_mat_n(self):
-    return self.mat_n
+  def get_mat_n(self,i,j):
+    return self.mat_n[i][j]
   
   def get_points(self):
     return self.points
@@ -292,8 +284,8 @@ class Globals:
   def get_cell_stream(self):
     return self.cell_stream
   
-  def get_mat_tok_usek(self):
-    return self.mat_tok_usek
+  def get_mat_tok_reach(self,i,j):
+    return self.mat_tok_reach[i][j]
   
   def get_STREAM_RATIO(self):
     return self.STREAM_RATIO
@@ -301,21 +293,33 @@ class Globals:
   def get_tokyLoc(self):
     return self.tokyLoc
   
-  def get_veg_true(self):
-    return self.tokyLoc
+  def get_max_dt(self):
+    return self.maxdt
+  
+  def get_hcrit(self,i,j):
+    return self.mat_hcrit[i][j]
+  
+  def get_mat_aa(self,i,j):
+    return self.mat_aa[i][j]
+  
+  def get_mat_b(self,i,j):
+    return self.mat_b[i][j]
+  
   
   
     
-  def set_veg_true(self,vt):
-    self.veg_true = vt
+
 
 
 ## Init fills the Globals class with values from preprocessing
 #
 def initLinux():
 
-
+  # get_indata is method which reads the input data
+  from   smoderp2d.src.tools.resolve_partial_computing import get_indata_lin
   import argparse
+  
+  
   parser = argparse.ArgumentParser()
   parser.add_argument('typecomp', help='type of computation', type=str, choices=['full','dpre','roff'])
   parser.add_argument('--indata', help='file with input data', type=str)
@@ -339,7 +343,8 @@ def initLinux():
     mat_n,   \
     output, pixel_area, points, poradi,  end_time, spix, state_cell, \
     temp, type_of_computing, vpix, mfda, sr, itera, \
-    toky, cell_stream, mat_tok_usek, STREAM_RATIO, tokyLoc = get_indata(partial_comp,args)
+    toky, cell_stream, mat_tok_reach, STREAM_RATIO, tokyLoc, extraOut, prtTimes, \
+    maxdt = get_indata_lin(partial_comp,args)
     
     
 
@@ -359,20 +364,20 @@ def initLinux():
     Globals.NoDataInt   = int(-9999)
     Globals.dx = math.sqrt(pixel_area)
     Globals.dy = Globals.dx
-    Globals.type_of_computing = type_of_computing
+    Globals.type_of_computing =  type_of_computing
     Globals.outdir = output
     Globals.mat_boundary = mat_boundary
     Globals.outletCells  = outletCells
     Globals.array_points = array_points
     Globals.combinatIndex = combinatIndex
     Globals.mat_pi  = mat_pi
-    Globals.mat_ppl = mat_ppl/1000.0
+    Globals.mat_ppl = mat_ppl
     Globals.surface_retention = surface_retention
     Globals.mat_inf_index = mat_inf_index
     Globals.mat_hcrit = mat_hcrit
     Globals.mat_aa = mat_aa
     Globals.mat_b = mat_b
-    Globals.mat_reten = mat_reten
+    Globals.mat_reten = -mat_reten/1000.
     Globals.mat_fd = mat_fd
     Globals.mat_dmt = mat_dmt
     Globals.mat_efect_vrst = mat_efect_vrst
@@ -392,13 +397,17 @@ def initLinux():
     Globals.itera = itera
     Globals.toky = toky
     Globals.cell_stream = cell_stream
-    Globals.mat_tok_usek = mat_tok_usek
+    Globals.mat_tok_reach = mat_tok_reach
     Globals.STREAM_RATIO = STREAM_RATIO
     Globals.tokyLoc = tokyLoc
-    Globals.diffuse = comp_type('diffuse')
-    Globals.subflow = comp_type('subflow')
-    Globals.max_dt = float(get_argv(constants.PARAMETER_MAX_DELTA_T))
-    Globals.veg_true = np.zeros([rows,cols],int)
+    Globals.diffuse = comp_type(type_of_computing,'diffuse')
+    Globals.subflow = comp_type(type_of_computing,'subflow')
+    Globals.isRill =  comp_type(type_of_computing,'rill')
+    Globals.isStream =  comp_type(type_of_computing,'stream')
+    Globals.extraOut =  extraOut
+    Globals.arcgis =  False
+    Globals.prtTimes = prtTimes
+    Globals.maxdt  = maxdt
     return True
 
   else:
@@ -416,7 +425,10 @@ def initLinux():
 #
 def initWin():
 
-
+  # get_indata is method which reads the input data
+  from   smoderp2d.src.tools.resolve_partial_computing import get_indata_win
+  
+  
   partial_comp = get_argv(constants.PARAMETER_PARTIAL_COMPUTING)
 
 
@@ -437,7 +449,7 @@ def initWin():
     mat_n,   \
     output, pixel_area, points, poradi,  end_time, spix, state_cell, \
     temp, type_of_computing, vpix, mfda, sr, itera, \
-    toky, cell_stream, mat_tok_usek, STREAM_RATIO, tokyLoc = get_indata(partial_comp,sys.argv)
+    toky, cell_stream, mat_tok_reach, STREAM_RATIO, tokyLoc = get_indata_win(partial_comp,sys.argv)
 
 
     sys.argv.append(type_of_computing)
@@ -464,13 +476,13 @@ def initWin():
     Globals.array_points = array_points
     Globals.combinatIndex = combinatIndex
     Globals.mat_pi  = mat_pi
-    Globals.mat_ppl = mat_ppl/1000.0
+    Globals.mat_ppl = mat_ppl
     Globals.surface_retention = surface_retention
     Globals.mat_inf_index = mat_inf_index
     Globals.mat_hcrit = mat_hcrit
     Globals.mat_aa = mat_aa
     Globals.mat_b = mat_b
-    Globals.mat_reten = mat_reten
+    Globals.mat_reten = -mat_reten/1000.
     Globals.mat_fd = mat_fd
     Globals.mat_dmt = mat_dmt
     Globals.mat_efect_vrst = mat_efect_vrst
@@ -490,18 +502,16 @@ def initWin():
     Globals.itera = itera
     Globals.toky = toky
     Globals.cell_stream = cell_stream
-    Globals.mat_tok_usek = mat_tok_usek
+    Globals.mat_tok_reach = mat_tok_reach
     Globals.STREAM_RATIO = STREAM_RATIO
     Globals.tokyLoc = tokyLoc
     Globals.diffuse = comp_type('diffuse')
     Globals.subflow = comp_type('subflow')
-    Globals.max_dt = float(get_argv(constants.PARAMETER_MAX_DELTA_T))
-    Globals.veg_true = np.zeros([rows,cols],int)
 
     return True
 
   elif (partial_comp == 'dpre') :
-    stop = get_indata(partial_comp,sys.argv)
+    stop = get_indata_win(partial_comp,sys.argv)
     return stop
 
 
