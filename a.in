@@ -9,7 +9,7 @@ lu-atr: LU
 
 
 [srazka]
-file: ../smoderp/indata/srazka.txt
+file: indata/srazka.txt
 
 
 

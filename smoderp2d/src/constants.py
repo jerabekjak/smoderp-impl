@@ -38,8 +38,8 @@ PARAMETER_PRINT_TIME = 21
 PARAMETER_TYPE_COMPUTING = 22     # nula jen docasne, typ vypoctu se resi jinak
 
 # calculation constants
-FB = math.pi / 4 # facet boundary
+FB = math.pi / 4  # facet boundary
 PI_HALF = math.pi / 2
 THREE_PI_HALF = 3 * math.pi / 2
-VE = 4 #variable exponent
+VE = 4  # variable exponent
 RILL_RATIO = 0.7
