@@ -122,7 +122,8 @@ def init_getIJel():
             el += int(1)
             getIJ.append([i, j])
             getEl[i][j] = el
-
+    
+    
     # druhy cyklus priradi
     # k elementu list elementu v inflows
     for i in rr:
@@ -187,8 +188,8 @@ class ImplicitSolver:
             self.indices, \
             self.indptr = init_getIJel()
 
-        self.A = np.zeros([self.nEl, self.nEl], float)
-        self.b = np.zeros([self.nEl], float)
+        self.A =    np.zeros([self.nEl, self.nEl], float)
+        self.b =    np.zeros([self.nEl], float)
         self.hnew = np.ones([self.nEl], float)
         self.hold = np.zeros([self.nEl], float)
 
@@ -215,23 +216,15 @@ class ImplicitSolver:
 
             i = self.ELtoIJ[iel][0]
             j = self.ELtoIJ[iel][1]
-            #print iel, i, j
             hcrit = gl.get_hcrit(i, j)
             a = gl.get_mat_aa(i, j)
             b = gl.get_mat_b(i, j)
-
+            
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
 
             if inf >= self.hnew[iel]:
                 inf = self.hnew[iel]
-
-            # toto je pokazde stejne
-            #indptr = [0]
-            # toto je pokazde stejne
-            #indices = []
-
-            # jen toto se meni pri plneni
 
             if self.hnew[iel] > 0:
                 data.append(
@@ -246,7 +239,7 @@ class ImplicitSolver:
                 else:
                     data.append(0)
 
-            #print data
+            
 
             """
       self.A[iel,iel] = (1./dt + a*self.hnew[iel]**(b-1))
@@ -264,7 +257,7 @@ class ImplicitSolver:
             # else :
             #self.b[iel] = self.hold[iel]/dt
 
-        print PS/dt, inf/dt
+        #print PS/dt, inf/dt
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
 
@@ -281,26 +274,21 @@ class ImplicitSolver:
     def solveStep(self, dt):
         import time
         from scipy.sparse.linalg import spsolve
-        #print 'asdf'
+
         iter_ = 1
         maxIter = 20
         hewp = self.hnew.copy()
         hewp.fill(0.0)
         while (abs(np.sum((hewp-self.hnew))) > 0.000001):
-            #print iter_
             iter_ += 1
             t1 = time.time()
             self.fillAmat(dt)
-            #print 'plnim za \t', time.time()-t1
             t1 = time.time()
             hewp = self.hnew.copy()
-            #sel.hnew = np.linalg.solve(self.A,self.b)
             self.hnew = spsolve(self.A, self.b)
             if (iter_ > maxIter):
                 break
-            #print 'spoctnu za \t', time.time()-t1
-            #print 'error', np.sum((hewp-self.hnew)**2.)
 
-        #print self.hnew[99]
         self.total_time += dt
+        print self.hnew[998]-self.hold[998]
         make_sur_raster(self, 'out', self.total_time)

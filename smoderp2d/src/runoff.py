@@ -58,14 +58,11 @@ def init_classes():
     gl = Globals()
     delta_t = gl.get_max_dt()
 
-    #isRill, subflow, stream, diffuse, = comp_type()
-
     courant = Courant()
     courant.set_time_step(delta_t)
 
     IS = ImplicitSolver()
 
-    # raw_input('...')
     return IS, courant, delta_t
 
 
@@ -82,14 +79,14 @@ class Runoff():
         t1 = time.time()
         print A.total_time+delta_t,
         A.solveStep(delta_t)
-        #print 'IS.total_time' , IS.total_time
 
-        while (A.total_time/60 <= 20):
+        while (A.total_time/60 <= 5):
             A.hold = A.hnew.copy()
-            print A.total_time+delta_t,
+            print A.total_time+delta_t, 
             A.solveStep(delta_t)
-            #print 'IS.total_time' , IS.total_time
-
-        #print "total time: ", time.time() - t1
 
         return 0
+
+
+
+
