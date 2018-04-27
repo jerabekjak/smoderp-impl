@@ -1,0 +1,8 @@
+plot 'outtxt1' u 1:2 w l title 'dt 1 sec dole', 'outtxt1' u 1:3 w l title 'dt 1 sec nahore',\
+'outtxt2' u 1:2 w l title 'dt 5 sec dole', 'outtxt2' u 1:3 w l title 'dt 5 sec nahore',\
+'outtxt3' u 1:2 w l title 'dt 10 sec dole', 'outtxt3' u 1:3 w l title 'dt 10 sec nahore',\
+'outtxt4' u 1:2 w l title 'dt 20 sec dole', 'outtxt4' u 1:3 w l title 'dt 20 sec nahore',\
+'outtxt5' u 1:2 w l title 'dt 30 sec dole', 'outtxt5' u 1:3 w l title 'dt 30 sec nahore',\
+'outtxt6' u 1:2 w l title 'dt 50 sec dole', 'outtxt6' u 1:3 w l title 'dt 50 sec nahore'
+
+
