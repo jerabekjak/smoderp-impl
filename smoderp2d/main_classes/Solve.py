@@ -1,4 +1,5 @@
 from smoderp2d.main_classes.General import Globals
+from smoderp2d.exceptions import MaxIterationExceeded
 import smoderp2d.processes.rainfall as rain_f
 import smoderp2d.processes.infiltration as infilt
 import smoderp2d.flow_algorithm.D8 as D8_
@@ -230,23 +231,25 @@ class ImplicitSolver:
 
 
     def solveStep(self, dt):
-        import time
         from scipy.sparse.linalg import spsolve
 
         iter_ = 0
-        maxIter = 20
+        maxIter = 10
         hewp = self.hnew.copy()
         hewp.fill(0.0)
+        
         while (abs(np.sum((hewp - self.hnew))) > 0.000001):
             iter_ += 1
-            print iter_,
-            t1 = time.time()
             self.fillAmat(dt)
-            t1 = time.time()
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
+            #print abs(np.sum((hewp - self.hnew)))
+            #print hewp[500],
+            #print self.hnew[500]
+            print iter_
             if (iter_ > maxIter):
-                break
+                raise  MaxIterationExceeded(maxIter, self.total_time)
+
 
         self.total_time += dt
         print self.hnew[500], self.hnew[998]
