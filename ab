@@ -1,6 +1,0 @@
-python start-smoderp2d.py --indata a.in roff > outtxt1
-python start-smoderp2d.py --indata b.in roff > outtxt2
-python start-smoderp2d.py --indata c.in roff > outtxt3
-python start-smoderp2d.py --indata d.in roff > outtxt4
-python start-smoderp2d.py --indata e.in roff > outtxt5
-python start-smoderp2d.py --indata f.in roff > outtxt6
