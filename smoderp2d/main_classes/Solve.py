@@ -214,8 +214,8 @@ class ImplicitSolver:
             
             # overlad outflow    
             if self.hnew[iel] > 0:
-                hsheet = gl.hcrit[i][j]
-                hrill  = gl.hcrit[i][j]
+                hsheet = min(gl.mat_hcrit[i][j],self.hnew[iel])
+                hrill  = max(0,self.hnew[iel]-gl.mat_hcrit[i][j])
                 data.append(
                     (1. / dt + gl.dx * (a * self.hnew[iel]**(b - 1)) / gl.pixel_area))
             else:
