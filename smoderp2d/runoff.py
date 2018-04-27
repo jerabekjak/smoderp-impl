@@ -37,20 +37,23 @@ from smoderp2d.main_classes.Solve import ImplicitSolver
 from smoderp2d.courant import Courant
 
 
-def init_classes():
+#def init_classes():
 
-    gl = Globals()
-    delta_t = gl.get_max_dt()
 
-    courant = Courant()
-    courant.set_time_step(delta_t)
-
-    LS = ImplicitSolver()
-
-    return LS, courant, delta_t
+    #return LS, courant, delta_t
 
 
 class Runoff():
+    
+    def __init__(self,provider):
+        #gl = Globals()
+        self.delta_t = Globals.maxdt
+
+        self.courant = Courant()
+        self.courant.set_time_step(self.delta_t)
+
+        self.LS = ImplicitSolver()
+        
 
     def run(self):
         import smoderp2d.flow_algorithm.D8 as D8_
@@ -58,20 +61,19 @@ class Runoff():
         # taky se vyresi vztypbi soubory nacteni dat
         # vse se hodi do ogjektu Globals as Gl
         gl = Globals()
-        LS, courant, delta_t = init_classes()
+        #LS, courant, delta_t = init_classes()
         
-        print gl.end_time
         t1 = time.time()
-        print LS.total_time+delta_t,
-        LS.solveStep(delta_t)
+        print self.LS.total_time+self.delta_t,
+        self.LS.solveStep(self.delta_t)
         
         
         
-        while (LS.total_time <= gl.end_time):
+        while (self.LS.total_time <= gl.end_time):
             #print LS.total_time/60, gl.end_time
-            LS.hold = LS.hnew.copy()
-            print LS.total_time+delta_t, 
-            LS.solveStep(delta_t)
+            self.LS.hold = self.LS.hnew.copy()
+            print self.LS.total_time+self.delta_t, 
+            self.LS.solveStep(self.delta_t)
 
         return 0
 

@@ -208,22 +208,24 @@ class ImplicitSolver:
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             
-            if inf >= self.hnew[iel]:
-                inf = self.hnew[iel]
-
+            if inf >= self.hold[iel]:
+                inf = self.hold[iel]
+                
             if self.hnew[iel] > 0:
                 data.append(
                     (1. / dt + gl.dx * (a * self.hnew[iel]**(b - 1)) / gl.pixel_area))
             else:
                 data.append((1. / dt))
-
+                
+            
             for inel in self.ELinEL_l[iel]:
                 if self.hnew[inel] > 0:
                     data.append(-(gl.dx * a *
                                   (self.hnew[inel]**(b - 1)) / gl.pixel_area))
                 else:
                     data.append(0)
-
+            
+            #print self.hold[iel] / dt, PS / dt, inf / dt
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
 
         self.A = csr_matrix((data, self.indices, self.indptr),
@@ -240,17 +242,16 @@ class ImplicitSolver:
         
         while (abs(np.sum((hewp - self.hnew))) > 0.000001):
             iter_ += 1
+            #print iter_
             self.fillAmat(dt)
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-            #print abs(np.sum((hewp - self.hnew)))
-            #print hewp[500],
-            #print self.hnew[500]
-            print iter_
+            #raw_input()
             if (iter_ > maxIter):
                 raise  MaxIterationExceeded(maxIter, self.total_time)
 
 
+        #print self.hnew[20]
         self.total_time += dt
-        print self.hnew[500], self.hnew[998]
+        print self.hnew[10], self.hnew[20]
         make_sur_raster(self, 'out', self.total_time)

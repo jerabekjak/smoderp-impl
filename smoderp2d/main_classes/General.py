@@ -73,7 +73,7 @@ class Globals:
     # combinatIndex
     combinatIndex = None
     # time step
-    delta_t = None
+    maxdt = None
     # raster contains potential interception data
     mat_pi = None
     # raster contains leaf area data
