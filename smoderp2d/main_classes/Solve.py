@@ -205,13 +205,17 @@ class ImplicitSolver:
             a = gl.get_mat_aa(i, j)
             b = gl.get_mat_b(i, j)
 
+            # infiltration
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
-            
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
-                
+            
+            
+            # overlad outflow    
             if self.hnew[iel] > 0:
+                hsheet = gl.hcrit[i][j]
+                hrill  = gl.hcrit[i][j]
                 data.append(
                     (1. / dt + gl.dx * (a * self.hnew[iel]**(b - 1)) / gl.pixel_area))
             else:
