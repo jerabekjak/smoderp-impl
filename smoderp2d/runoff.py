@@ -32,38 +32,22 @@ import sys
 
 
 from smoderp2d.main_classes.General import Globals
-#from smoderp2d.main_classes.Vegetation    import Vegetation
-#from smoderp2d.main_classes.Surface       import Surface
 from smoderp2d.main_classes.Solve import ImplicitSolver
 
-
-#from smoderp2d.main_classes.Subsurface    import Subsurface
-#from smoderp2d.main_classes.CumulativeMax import Cumulative
-#from smoderp2d.time_step                  import TimeStep
-
-#import smoderp2d.constants                 as constants
 from smoderp2d.courant import Courant
-#import smoderp2d.tools.tools               as tools
-#import smoderp2d.io_functions.post_proc    as post_proc
-#import smoderp2d.io_functions.prt          as prt
-#import smoderp2d.io_functions.progress_bar as progress_bar
-from smoderp2d.tools.tools import comp_type
-#from   smoderp2d.tools.times_prt       import TimesPrt
-#from smoderp2d.tools.tools             import get_argv
 
 
 def init_classes():
 
-    import time
     gl = Globals()
     delta_t = gl.get_max_dt()
 
     courant = Courant()
     courant.set_time_step(delta_t)
 
-    IS = ImplicitSolver()
+    LS = ImplicitSolver()
 
-    return IS, courant, delta_t
+    return LS, courant, delta_t
 
 
 class Runoff():
@@ -73,17 +57,21 @@ class Runoff():
 
         # taky se vyresi vztypbi soubory nacteni dat
         # vse se hodi do ogjektu Globals as Gl
-
-        A, courant, delta_t = init_classes()
-
+        gl = Globals()
+        LS, courant, delta_t = init_classes()
+        
+        print gl.end_time
         t1 = time.time()
-        print A.total_time+delta_t,
-        A.solveStep(delta_t)
-
-        while (A.total_time/60 <= 5):
-            A.hold = A.hnew.copy()
-            print A.total_time+delta_t, 
-            A.solveStep(delta_t)
+        print LS.total_time+delta_t,
+        LS.solveStep(delta_t)
+        
+        
+        
+        while (LS.total_time <= gl.end_time):
+            #print LS.total_time/60, gl.end_time
+            LS.hold = LS.hnew.copy()
+            print LS.total_time+delta_t, 
+            LS.solveStep(delta_t)
 
         return 0
 

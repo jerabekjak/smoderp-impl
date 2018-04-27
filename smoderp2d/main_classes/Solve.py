@@ -1,10 +1,9 @@
-
-
 from smoderp2d.main_classes.General import Globals
 import smoderp2d.processes.rainfall as rain_f
 import smoderp2d.processes.infiltration as infilt
 import smoderp2d.flow_algorithm.D8 as D8_
 
+from scipy.sparse import csr_matrix
 import numpy as np
 import os
 import sys
@@ -44,7 +43,7 @@ def make_ASC_raster(name_, numpy_arr):
 
     # for i in br:
         # for j in bc[i]:
-            #tmp[i][j] = numpy_arr[i][j]
+            # tmp[i][j] = numpy_arr[i][j]
 
     for i in range(nrows):
         line = ""
@@ -70,7 +69,7 @@ def make_sur_raster(IS, output, t):
             el = IS.IJtoEl_a[i][j]
             arr[i][j] = IS.hnew[el]
 
-    outName = output+os.sep+str(int(t)).zfill(10)+'h'+".asc"
+    outName = output + os.sep + str(int(t)).zfill(10) + 'h' + ".asc"
     make_ASC_raster(outName, arr)
 
 
@@ -79,12 +78,12 @@ def init_getIJel():
 
     popis:
     funkce ma vytvorit pole a vektory na zjistovani
-    odpovidajiciho radku a sloupce rasteru podle pozive v lin soustave 
+    odpovidajiciho radku a sloupce rasteru podle pozive v lin soustave
     a odpovidajiciho elementu v soustave podle sloupce a rarku v rasteru
 
     return el      - pocet elementu v soustave
     return getEl   - i j pole, obsahuje pozici v soustave
-    return getElIN - i j pole, pozive vtekajicich elementu 
+    return getElIN - i j pole, pozive vtekajicich elementu
     return getIJ   - vektor, vrati odpovidajici i j pro dany element v soustave
     """
 
@@ -97,11 +96,6 @@ def init_getIJel():
     rc = gl.get_rcols()
     br = gl.get_bor_rows()
     bc = gl.get_bor_cols()
-
-    #print gl.get_bor_cols()
-    #print rc
-
-    # raw_input('..')
 
     getEl = np.zeros([r, c], int)
     getIJ = []
@@ -122,20 +116,19 @@ def init_getIJel():
             el += int(1)
             getIJ.append([i, j])
             getEl[i][j] = el
-    
-    
+
     # druhy cyklus priradi
     # k elementu list elementu v inflows
     for i in rr:
         for j in rc[i]:
             n = len(inflows[i][j])
-            tmp = [-int(99)]*n
+            tmp = [-int(99)] * n
 
             for z in range(n):
                 ax = inflows[i][j][z][0]
                 bx = inflows[i][j][z][1]
-                iax = i+ax
-                jbx = j+bx
+                iax = i + ax
+                jbx = j + bx
                 tmp[z] = getEl[iax][jbx]
 
             getElIN.append(tmp)
@@ -143,13 +136,13 @@ def init_getIJel():
     for i in br:
         for j in bc[i]:
             n = len(inflows[i][j])
-            tmp = [-int(99)]*n
+            tmp = [-int(99)] * n
 
             for z in range(n):
                 ax = inflows[i][j][z][0]
                 bx = inflows[i][j][z][1]
-                iax = i+ax
-                jbx = j+bx
+                iax = i + ax
+                jbx = j + bx
                 tmp[z] = getEl[iax][jbx]
 
             getElIN.append(tmp)
@@ -181,22 +174,14 @@ class ImplicitSolver:
         # aktualni cas programu
         self.total_time = 0
 
-        self.nEl, \
-            self.IJtoEl_a, \
-            self.ELinEL_l, \
-            self.ELtoIJ, \
-            self.indices, \
-            self.indptr = init_getIJel()
+        self.nEl, self.IJtoEl_a, self.ELinEL_l, self.ELtoIJ, self.indices, self.indptr = init_getIJel()
 
-        self.A =    np.zeros([self.nEl, self.nEl], float)
-        self.b =    np.zeros([self.nEl], float)
+        self.A = np.zeros([self.nEl, self.nEl], float)
+        self.b = np.zeros([self.nEl], float)
         self.hnew = np.ones([self.nEl], float)
         self.hold = np.zeros([self.nEl], float)
 
-        #print self.nEl
-
     def fillAmat(self, dt):
-        from scipy.sparse import csr_matrix
 
         gl = Globals()
 
@@ -206,12 +191,11 @@ class ImplicitSolver:
             index = iii[0]
             k = iii[1]
             s = iii[2]
-            # jj * 100.0 !!! smazat
             iii[3] = infilt.phlilip(
                 k, s, dt, self.total_time, gl.get_NoDataValue())
 
         data = []
-
+        
         for iel in range(self.nEl):
 
             i = self.ELtoIJ[iel][0]
@@ -219,68 +203,43 @@ class ImplicitSolver:
             hcrit = gl.get_hcrit(i, j)
             a = gl.get_mat_aa(i, j)
             b = gl.get_mat_b(i, j)
-            
+
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
-
+            
             if inf >= self.hnew[iel]:
                 inf = self.hnew[iel]
 
             if self.hnew[iel] > 0:
                 data.append(
-                    (1./dt + gl.dx*(a*self.hnew[iel]**(b-1))/gl.pixel_area))
+                    (1. / dt + gl.dx * (a * self.hnew[iel]**(b - 1)) / gl.pixel_area))
             else:
-                data.append((1./dt))
+                data.append((1. / dt))
 
             for inel in self.ELinEL_l[iel]:
                 if self.hnew[inel] > 0:
-                    data.append(-(gl.dx*a *
-                                  (self.hnew[inel]**(b-1))/gl.pixel_area))
+                    data.append(-(gl.dx * a *
+                                  (self.hnew[inel]**(b - 1)) / gl.pixel_area))
                 else:
                     data.append(0)
 
-            
+            self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
 
-            """
-      self.A[iel,iel] = (1./dt + a*self.hnew[iel]**(b-1))
-      for inel in self.ELinEL_l[iel]:
-        try: 
-          if self.hnew[inel] < 0 :
-            sys.exit()
-          self.A[iel,inel]  = -(a*self.hnew[inel]**(b-1))
-        except:
-          pass
-      """
-
-            # if self.hnew[iel] > 0 :
-            self.b[iel] = self.hold[iel]/dt + PS/dt - inf/dt
-            # else :
-            #self.b[iel] = self.hold[iel]/dt
-
-        #print PS/dt, inf/dt
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
 
-        # else:
-        # pass
-        # raw_input('stop')
-
-        """
-    zatim budu brat potencialni stazku
-    NS, sum_interception, rain_arr.arr[i][j].veg_true = rain_f.current_rain(rain_arr.arr[i][j], rainfall, sum_interception)
-    """
-        #print self.hold[iel]
 
     def solveStep(self, dt):
         import time
         from scipy.sparse.linalg import spsolve
 
-        iter_ = 1
+        iter_ = 0
         maxIter = 20
         hewp = self.hnew.copy()
         hewp.fill(0.0)
-        while (abs(np.sum((hewp-self.hnew))) > 0.000001):
+        while (abs(np.sum((hewp - self.hnew))) > 0.000001):
             iter_ += 1
+            print iter_,
             t1 = time.time()
             self.fillAmat(dt)
             t1 = time.time()
@@ -290,5 +249,5 @@ class ImplicitSolver:
                 break
 
         self.total_time += dt
-        print self.hnew[998]-self.hold[998]
+        print self.hnew[500], self.hnew[998]
         make_sur_raster(self, 'out', self.total_time)
