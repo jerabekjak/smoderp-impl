@@ -1,4 +1,5 @@
 from smoderp2d.main_classes.General import Globals
+from smoderp2d.main_classes.Surface import Surface
 from smoderp2d.exceptions import MaxIterationExceeded
 import smoderp2d.processes.rainfall as rain_f
 import smoderp2d.processes.infiltration as infilt
@@ -181,10 +182,20 @@ class ImplicitSolver:
         self.b = np.zeros([self.nEl], float)
         self.hnew = np.ones([self.nEl], float)
         self.hold = np.zeros([self.nEl], float)
+        
+        self.sur = Surface()
+        
+        
 
     def fillAmat(self, dt):
-
+        from smoderp2d.processes.surface import sheet_flowb_
         gl = Globals()
+        if gl.isRill :
+            from smoderp2d.processes.rill    import rill
+        else :
+            from smoderp2d.processes.rill    import rill_pass
+            
+
 
         PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
 
@@ -201,9 +212,6 @@ class ImplicitSolver:
 
             i = self.ELtoIJ[iel][0]
             j = self.ELtoIJ[iel][1]
-            hcrit = gl.get_hcrit(i, j)
-            a = gl.get_mat_aa(i, j)
-            b = gl.get_mat_b(i, j)
 
             # infiltration
             inf = infilt.philip_infiltration(
@@ -214,22 +222,44 @@ class ImplicitSolver:
             
             # overlad outflow    
             if self.hnew[iel] > 0:
-                hsheet = min(gl.mat_hcrit[i][j],self.hnew[iel])
-                hrill  = max(0,self.hnew[iel]-gl.mat_hcrit[i][j])
+                hcrit = gl.get_hcrit(i, j)
+                a = gl.get_aa(i, j)
+                b = gl.get_b(i, j)
+                hsheet = min(hcrit,self.hnew[iel])
+                hrill  = max(0,    self.hnew[iel]-hcrit)
+                sf     = sheet_flowb_(a,b,hsheet)
+                
+                rf = 0
+                if (hrill>0): rf = rill(i,j,hrill,dt,self.sur.arr[i][j])
+                
+                #if (iel==50) :
+                    #print iel, hsheet, hrill, sf, rf
+                
                 data.append(
-                    (1. / dt + gl.dx * (a * self.hnew[iel]**(b - 1)) / gl.pixel_area))
+                    (1. / dt + gl.dx * (sf) / gl.pixel_area + rf))
             else:
                 data.append((1. / dt))
                 
-            
+            # TODO to by meli byt jiny acka a becka 
+            # pokud to vteka z jineho lu nebo pudy
             for inel in self.ELinEL_l[iel]:
                 if self.hnew[inel] > 0:
-                    data.append(-(gl.dx * a *
-                                  (self.hnew[inel]**(b - 1)) / gl.pixel_area))
+                    i = self.ELtoIJ[inel][0]
+                    j = self.ELtoIJ[inel][1]
+                    hcrit = gl.get_hcrit(i, j)
+                    a = gl.get_aa(i, j)
+                    b = gl.get_b(i, j)
+                    
+                    hsheet = min(hcrit,self.hnew[inel])
+                    hrill  = max(0,    self.hnew[inel]-hcrit)
+                    sf     = sheet_flowb_(a,b,hsheet)
+                    rf = 0
+                    if (hrill > 0): rf = rill(i,j,hrill,dt,self.sur.arr[i][j])
+
+                    data.append(-(gl.dx * sf) / gl.pixel_area - rf)
                 else:
                     data.append(0)
             
-            #print self.hold[iel] / dt, PS / dt, inf / dt
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
 
         self.A = csr_matrix((data, self.indices, self.indptr),
@@ -240,7 +270,7 @@ class ImplicitSolver:
         from scipy.sparse.linalg import spsolve
 
         iter_ = 0
-        maxIter = 10
+        maxIter = 20
         hewp = self.hnew.copy()
         hewp.fill(0.0)
         
@@ -254,7 +284,7 @@ class ImplicitSolver:
             if (iter_ > maxIter):
                 raise  MaxIterationExceeded(maxIter, self.total_time)
 
-
+        
         #print self.hnew[20]
         self.total_time += dt
         print self.hnew[10], self.hnew[20]

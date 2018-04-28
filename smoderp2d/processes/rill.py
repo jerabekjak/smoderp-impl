@@ -1,15 +1,21 @@
 import math
+from smoderp2d.main_classes.General import Globals
+import smoderp2d.constants as constants
 
 courantMax = 1.0
 courantMin = 0.2
 
 
-def update_hb(loc_V_to_rill, rillRatio, l, b, ratio, ppp=False):
-    V = loc_V_to_rill
+def update_hb(i,j,V_to_rill, b):
+    gl = Globals()
+    
+    V = V_to_rill
+    rr = constants.RILL_RATIO
+    l  = gl.get_efect_contour(i,j)
     if V < 0:
         print "chybka", V
         raw_input()
-    newb = math.sqrt(V/(rillRatio*l))
+    newb = math.sqrt(V/(rr*l))
     #if ppp :  print 'zvetsuje', newb, b, V
     if (V > 0):
         if newb > b:
@@ -22,8 +28,30 @@ def update_hb(loc_V_to_rill, rillRatio, l, b, ratio, ppp=False):
 
     return h, b
 
+# TODO zkontrolovat V_RILL_REST jestli je treba
+def rill(i,j,hrill,dt,sur):
+    
+    gl = Globals()
+    b = sur.width_rill
+    V_to_rill = hrill*gl.pixel_area
+    n = gl.get_n(i,j)
+    slope = gl.get_slope(i,j)
+    
+    # hloc is the actual water level in rill
+    # hrill is water level goes to the rill from related to 
+    # whole cell area
+    hloc, b = update_hb(i,j,V_to_rill, b)
+    R_rill = (hloc*b)/(b + 2*hloc)
+    v = math.pow(R_rill, (2.0/3.0)) * 1/n * math.pow(slope/100, 0.5)  # m/s
+    #raw_input()
+    return v
+    
+def rill_pass(i,j,hrill,dt,sur):
+    
+    pass
 
-def rill(V_to_rill, rillRatio, l, b, delta_t, ratio, n, slope, pixelArea, ppp=False):
+    
+def rillold(V_to_rill, rillRatio, l, b, delta_t, ratio, n, slope, pixelArea, ppp=False):
 
     V_rill_runoff = 0
     V_rill_rest = 0     # vrillrest z predchoziho kroku je zapocten v vtorill

@@ -1,39 +1,24 @@
-# @package nacteni a uloze hodnot co jsou z data preparation
-#  roff, dpre, full se resi  resolve_partial_computin
-#  odtud se jen vola tato funkce.
-
 
 import math
 import sys
 
-
-# get type of computing identifier based on the string
-from smoderp2d.tools.tools import comp_type
-
-from smoderp2d.tools.tools import get_argv
-import smoderp2d.constants as constants
-
-
-# Documentation for a class.
-#
-#  method to compute size of class arrays
 class Size:
-
-    # size
-    #  @param arrayNBytes <numpy array>.nbytes
-    #  @param m value in denominator to get bytes, kilobytes (m=2**10), megabytes (m=2**10+m**10) and so on.
-    def size(self, arrayNBytes, m=1.0):
+    @staticmethod
+    def size(arrayNBytes, m=1.0):
+        """Method to compute size of class arrays.    
+        
+        :param <numpy array>.nbytes arrayNBytes:
+        :param float m: value in denominator to get bytes, kilobytes
+        (m=2**10), megabytes (m=2**10+m**10) and so on.
+        """
         # arrayNBytes eq self.state.nbytes
-        size = (self.n * arrayNBytes)/m
-        return size
+        return (self.n * arrayNBytes) / m
 
-
-# Class Globals contains global variables
-#
-#  from data_preparation, in instance of class needed
-#  the data are taken from import of this class
-#
 class Globals:
+    """Gloobals contains global variables from data_preparation, in
+    instance of class needed the data are taken from import of this
+    class.
+    """
     # area of a raster cell in meters
     pixel_area = None
     # number of rows in rasters
@@ -48,9 +33,9 @@ class Globals:
     br = None
     # id of columns in at the boundary of computational domain
     bc = None
-    # x coordinate od of left bottom corner of raster
+    # left bottom corner x coordinate of raster
     xllcorner = None
-    # y coordinate od of left bottom corner of raster
+    # left bottom corner y coordinate of raster
     yllcorner = None
     # no data value for raster
     NoDataValue = None
@@ -73,7 +58,7 @@ class Globals:
     # combinatIndex
     combinatIndex = None
     # time step
-    maxdt = None
+    delta_t = None
     # raster contains potential interception data
     mat_pi = None
     # raster contains leaf area data
@@ -118,7 +103,8 @@ class Globals:
     temp = None
     # ???
     vpix = None
-    # bool variable for flow direction algorithm (false=one direction, true multiple flow direction)
+    # bool variable for flow direction algorithm (false=one direction, true
+    # multiple flow direction)
     mfda = None
     # list contains the precipitation data
     sr = None
@@ -134,7 +120,11 @@ class Globals:
     STREAM_RATIO = None
     # ???
     tokyLoc = None
-
+    # ???
+    maxdt = None
+    # ???
+    extraOut = None
+    
     def get_pixel_area(self):
         return self.pixel_area
 
@@ -204,20 +194,20 @@ class Globals:
     def get_surface_retention(self):
         return self.surface_retention
 
-    def get_mat_inf_index(self, i, j):
+    def get_mat_inf_index(self,i,j):
         return self.mat_inf_index[i][j]
 
-    def get_mat_hcrit(self):
-        return self._mat_hcrit
+    def get_hcrit(self,i,j):
+        return self.mat_hcrit[i][j]
 
-    def get_mat_aa(self):
-        return self.mat_aa
+    def get_aa(self,i,j):
+        return self.mat_aa[i][j]
 
-    def get_mat_b(self):
-        return self.mat_b
+    def get_b(self,i,j):
+        return self.mat_b[i][j]
 
-    def get_mat_reten(self):
-        return self.mat_reten
+    def get_reten(self,i,j):
+        return self.mat_reten[i][j]
 
     def get_mat_fd(self):
         return self.mat_fd
@@ -225,10 +215,10 @@ class Globals:
     def get_mat_dmt(self):
         return self.mat_dmt
 
-    def get_mat_efect_vrst(self):
-        return self.mat_efect_vrst
+    def get_efect_contour(self,i,j):
+        return self.mat_efect_vrst[i][j]
 
-    def get_mat_slope(self, i, j):
+    def get_slope(self, i, j):
         return self.mat_slope[i][j]
 
     def get_mat_nan(self):
@@ -237,7 +227,7 @@ class Globals:
     def get_mat_a(self):
         return self.mat_a
 
-    def get_mat_n(self, i, j):
+    def get_n(self, i, j):
         return self.mat_n[i][j]
 
     def get_points(self):
@@ -284,204 +274,3 @@ class Globals:
 
     def get_tokyLoc(self):
         return self.tokyLoc
-
-    def get_max_dt(self):
-        return self.maxdt
-
-    def get_hcrit(self, i, j):
-        return self.mat_hcrit[i][j]
-
-    def get_mat_aa(self, i, j):
-        return self.mat_aa[i][j]
-
-    def get_mat_b(self, i, j):
-        return self.mat_b[i][j]
-
-
-# Init fills the Globals class with values from preprocessing
-#
-def initLinux():
-
-    # get_indata is method which reads the input data
-    from smoderp2d.tools.resolve_partial_computing import get_indata_lin
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument('typecomp', help='type of computation',
-                        type=str, choices=['full', 'dpre', 'roff'])
-    parser.add_argument('--indata', help='file with input data', type=str)
-    args = parser.parse_args()
-    partial_comp = args.typecomp
-
-    if (partial_comp == 'roff'):
-
-        boundaryRows, boundaryCols, \
-            mat_boundary, rrows, rcols, outletCells, \
-            x_coordinate, y_coordinate,\
-            NoDataValue, array_points, \
-            cols, rows, combinatIndex, delta_t,  \
-            mat_pi, mat_ppl, \
-            surface_retention, mat_inf_index, mat_hcrit, mat_aa, mat_b, mat_reten,\
-            mat_fd, mat_dmt, mat_efect_vrst, mat_slope, mat_nan, \
-            mat_a,   \
-            mat_n,   \
-            output, pixel_area, points, poradi,  end_time, spix, state_cell, \
-            temp, type_of_computing, vpix, mfda, sr, itera, \
-            toky, cell_stream, mat_tok_reach, STREAM_RATIO, tokyLoc, extraOut, prtTimes, \
-            maxdt = get_indata_lin(partial_comp, args)
-
-        Globals.pixel_area = pixel_area
-        Globals.r = rows
-        Globals.c = cols
-        Globals.rr = rrows
-        Globals.rc = rcols
-        Globals.br = boundaryRows
-        Globals.bc = boundaryCols
-        Globals.xllcorner = x_coordinate
-        Globals.yllcorner = y_coordinate
-        Globals.NoDataValue = NoDataValue
-        Globals.NoDataInt = int(-9999)
-        Globals.dx = math.sqrt(pixel_area)
-        Globals.dy = Globals.dx
-        Globals.type_of_computing = type_of_computing
-        Globals.outdir = output
-        Globals.mat_boundary = mat_boundary
-        Globals.outletCells = outletCells
-        Globals.array_points = array_points
-        Globals.combinatIndex = combinatIndex
-        Globals.mat_pi = mat_pi
-        Globals.mat_ppl = mat_ppl
-        Globals.surface_retention = surface_retention
-        Globals.mat_inf_index = mat_inf_index
-        Globals.mat_hcrit = mat_hcrit
-        Globals.mat_aa = mat_aa
-        Globals.mat_b = mat_b
-        Globals.mat_reten = -mat_reten/1000.
-        Globals.mat_fd = mat_fd
-        Globals.mat_dmt = mat_dmt
-        Globals.mat_efect_vrst = mat_efect_vrst
-        Globals.mat_slope = mat_slope
-        Globals.mat_nan = mat_nan
-        Globals.mat_a = mat_a
-        Globals.mat_n = mat_n
-        Globals.points = points
-        Globals.poradi = poradi
-        Globals.end_time = end_time
-        Globals.spix = spix
-        Globals.state_cell = state_cell
-        Globals.temp = temp
-        Globals.vpix = vpix
-        Globals.mfda = mfda
-        Globals.sr = sr
-        Globals.itera = itera
-        Globals.toky = toky
-        Globals.cell_stream = cell_stream
-        Globals.mat_tok_reach = mat_tok_reach
-        Globals.STREAM_RATIO = STREAM_RATIO
-        Globals.tokyLoc = tokyLoc
-        Globals.diffuse = comp_type(type_of_computing, 'diffuse')
-        Globals.subflow = comp_type(type_of_computing, 'subflow')
-        Globals.isRill = comp_type(type_of_computing, 'rill')
-        Globals.isStream = comp_type(type_of_computing, 'stream')
-        Globals.extraOut = extraOut
-        Globals.arcgis = False
-        Globals.prtTimes = prtTimes
-        Globals.maxdt = maxdt
-        return True
-
-    else:
-        print 'for Linux only roff'
-        return False
-
-
-# Init fills the Globals class with values from preprocessing
-#
-def initWin():
-
-    # get_indata is method which reads the input data
-    from smoderp2d.tools.resolve_partial_computing import get_indata_win
-
-    partial_comp = get_argv(constants.PARAMETER_PARTIAL_COMPUTING)
-
-    if (partial_comp == 'roff') | (partial_comp == 'full'):
-
-        boundaryRows, boundaryCols, \
-            mat_boundary, rrows, rcols, outletCells, \
-            x_coordinate, y_coordinate,\
-            NoDataValue, array_points, \
-            cols, rows, combinatIndex, delta_t,  \
-            mat_pi, mat_ppl, \
-            surface_retention, mat_inf_index, mat_hcrit, mat_aa, mat_b, mat_reten,\
-            mat_fd, mat_dmt, mat_efect_vrst, mat_slope, mat_nan, \
-            mat_a,   \
-            mat_n,   \
-            output, pixel_area, points, poradi,  end_time, spix, state_cell, \
-            temp, type_of_computing, vpix, mfda, sr, itera, \
-            toky, cell_stream, mat_tok_reach, STREAM_RATIO, tokyLoc = get_indata_win(
-                partial_comp, sys.argv)
-
-        sys.argv.append(type_of_computing)
-
-        Globals.pixel_area = pixel_area
-        Globals.r = rows
-        Globals.c = cols
-        Globals.rr = rrows
-        Globals.rc = rcols
-        Globals.br = boundaryRows
-        Globals.bc = boundaryCols
-        Globals.xllcorner = x_coordinate
-        Globals.yllcorner = y_coordinate
-        Globals.NoDataValue = NoDataValue
-        Globals.NoDataInt = int(-9999)
-        Globals.dx = math.sqrt(pixel_area)
-        Globals.dy = Globals.dx
-        Globals.type_of_computing = type_of_computing
-        Globals.outdir = output
-        Globals.mat_boundary = mat_boundary
-        Globals.outletCells = outletCells
-        Globals.array_points = array_points
-        Globals.combinatIndex = combinatIndex
-        Globals.mat_pi = mat_pi
-        Globals.mat_ppl = mat_ppl
-        Globals.surface_retention = surface_retention
-        Globals.mat_inf_index = mat_inf_index
-        Globals.mat_hcrit = mat_hcrit
-        Globals.mat_aa = mat_aa
-        Globals.mat_b = mat_b
-        Globals.mat_reten = -mat_reten/1000.
-        Globals.mat_fd = mat_fd
-        Globals.mat_dmt = mat_dmt
-        Globals.mat_efect_vrst = mat_efect_vrst
-        Globals.mat_slope = mat_slope
-        Globals.mat_nan = mat_nan
-        Globals.mat_a = mat_a
-        Globals.mat_n = mat_n
-        Globals.points = points
-        Globals.poradi = poradi
-        Globals.end_time = end_time
-        Globals.spix = spix
-        Globals.state_cell = state_cell
-        Globals.temp = temp
-        Globals.vpix = vpix
-        Globals.mfda = mfda
-        Globals.sr = sr
-        Globals.itera = itera
-        Globals.toky = toky
-        Globals.cell_stream = cell_stream
-        Globals.mat_tok_reach = mat_tok_reach
-        Globals.STREAM_RATIO = STREAM_RATIO
-        Globals.tokyLoc = tokyLoc
-        Globals.diffuse = comp_type('diffuse')
-        Globals.subflow = comp_type('subflow')
-
-        return True
-
-    elif (partial_comp == 'dpre'):
-        stop = get_indata_win(partial_comp, sys.argv)
-        return stop
-
-
-def initNone():
-    print "Unsupported platform."
-    print "Exiting smoderp 2d..."
-    return False

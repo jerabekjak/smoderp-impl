@@ -10,7 +10,7 @@ import sys
 import os
 #import psutil
 
-from smoderp2d.main_classes.General import *
+from smoderp2d.main_classes.General import Globals
 from smoderp2d.main_classes.KinematicDiffuse import *
 from smoderp2d.main_classes.Stream import *
 
@@ -20,7 +20,12 @@ import smoderp2d.constants as constants
 import smoderp2d.io_functions.prt as prt
 import smoderp2d.processes.surface as surfacefce
 from smoderp2d.tools.tools import comp_type
-isRill, subflow, stream, diffuse = comp_type()
+
+
+
+        
+gl = Globals()
+isRill, subflow, stream, diffuse = comp_type(gl.type_of_computing)
 
 
 courantMax = 1.0
@@ -31,37 +36,35 @@ courantMax = 1.0
 #  Class contains a set of surface perameters
 class SurArrs:
 
+
     # Constructor of Surface array
     #
     #  assign values into surface parameters
-    def __init__(self, sur_ret, inf_index, hcrit, a, b):
+    def __init__(self, sur_ret):
 
         self.state = int(0)
+        self.width_rill = float(0)
         self.sur_ret = sur_ret
-        self.cur_sur_ret = float(0)
-        self.cur_rain = float(0)
-        self.h_sheet = float(0)
-        self.h_total_new = float(0)
-        self.h_total_pre = float(0)
-        self.V_runoff = float(0)
+        #self.cur_sur_ret = float(0)
+        #self.cur_rain = float(0)
+        #self.h_sheet = float(0)
+        #self.h_total_new = float(0)
+        #self.h_total_pre = float(0)
+        #self.V_runoff = float(0)
         #self.V_runoff_pre = float(0)
-        self.V_rest = float(0)
+        #self.V_rest = float(0)
         #self.V_rest_pre =   float(0)
-        self.inflow_tm = float(0)
-        self.soil_type = inf_index
-        self.infiltration = float(0)
-        self.h_crit = hcrit
-        self.a = a
-        self.b = b
-        self.h_rill = float(0)
-        self.h_rillPre = float(0)
-        self.V_runoff_rill = float(0)
+        #self.inflow_tm = float(0)
+        #self.soil_type = inf_index
+        #self.infiltration = float(0)
+        #self.h_rill = float(0)
+        #self.V_runoff_rill = float(0)
         #self.V_runoff_rill_pre= float(0)
-        self.V_rill_rest = float(0)
+        #self.V_rill_rest = float(0)
         #self.V_rill_rest_pre =  float(0)
-        self.rillWidth = float(0)
-        self.V_to_rill = float(0)
-        self.h_last_state1 = float(0)
+        #self.rillWidth = float(0)
+        #self.V_to_rill = float(0)
+        #self.h_last_state1 = float(0)
 
 
 # Documentation for a class Surface.
@@ -69,25 +72,23 @@ class SurArrs:
 #  Class Surface contains data and methods
 #  to calculate the surface and rill runoff
 #
-class Surface(Stream if stream == True else StreamPass, Kinematic, Globals, Size):
+class Surface(Stream if stream == True else StreamPass, Kinematic, Globals):
 
     # The constructor
     #  make all numpy arrays and establish the inflow procedure based on D8 or Multi Flow Direction Algorithm method
-    def __init__(self, r, c, mat_reten, mat_inf_index, mat_hcrit, mat_aa, mat_b):
+    def __init__(self):
 
         prt.message("Surface:")
 
         self.n = 15
         self.arr = np.empty((self.r, self.c), dtype=object)
-        self.r = r
-        self.c = c
+        self.r = gl.r
+        self.c = gl.c
 
         for i in range(self.r):
             for j in range(self.c):
                 # jj                           prevod na m y mm
-                self.arr[i][j] = SurArrs(-mat_reten[i][j]/1000., mat_inf_index[i]
-                                         [j], mat_hcrit[i][j], mat_aa[i][j], mat_b[i][j])
-                #self.arr[i][j] = SurArrs(sur_ret,mat_inf_index[i][j],0.0025,mat_aa[i][j],mat_b[i][j])
+                self.arr[i][j] = SurArrs(-gl.get_reten(i,j)/1000.)
 
         self.rill_computing = isRill
 
