@@ -70,6 +70,8 @@ class Runoff():
         print self.LS.total_time+self.courant.dt,
         self.LS.solveStep(self.courant)
         
+        self.courant.reset()
+        
         
         
         while (self.LS.total_time <= gl.end_time):

@@ -36,8 +36,10 @@ class Courant():
         self.maxratio = 10
         self.max_delta_t = Gl.maxdt
         self.min_delta_t = 0.1
-        self.max_iter    = 6
-        self.min_iter    = 3
+        self.max_iter    = 10
+        self.min_iter    = 4
+        self.pre_rill_count    = 0
+        print  self.pre_rill_count
         self.max_delta_t_mult = 1.0
         
 
@@ -49,16 +51,20 @@ class Courant():
     # Resets the self.cour_most and self.cour_speed after each time stop computation is successfully completed
     #
     def reset(self):
-        self.cour_most = 0
-        self.cour_speed = 0
-        self.cour_most_rill = 0
+        self.pre_rill_count = 0
+        
     
     
     def check_time(self,iter_):
         if iter_ >= self.max_iter :
-            self.dt = max(0.1,self.dt*0.3)
+            self.dt = max(0.1,self.dt*0.7)
         if iter_ <= self.min_iter :
             self.dt = min(self.max_delta_t,self.dt*1.3)
+            
+    def rill_check(self,rc): # rc - rill count
+        if rc > self.pre_rill_count :
+            self.dt = max(0.1,self.dt*0.3)
+            self.pre_rill_count = rc    
             
     # Guesses the initial time step.
     #
