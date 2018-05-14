@@ -31,8 +31,10 @@ import sys
 # importing classes
 
 
-from smoderp2d.main_classes.General import Globals
-from smoderp2d.main_classes.Solve import ImplicitSolver
+from smoderp2d.arrs.General import Globals
+from smoderp2d.arrs.Solve import ImplicitSolver
+
+
 
 from smoderp2d.courant import Courant
 
@@ -46,7 +48,7 @@ from smoderp2d.courant import Courant
 class Runoff():
     
     def __init__(self,provider):
-        #gl = Globals()
+        gl = Globals()
         self.delta_t = Globals.maxdt
 
         self.courant = Courant()
@@ -54,6 +56,7 @@ class Runoff():
 
         self.LS = ImplicitSolver()
         
+
 
     def run(self):
         import smoderp2d.flow_algorithm.D8 as D8_
@@ -64,17 +67,18 @@ class Runoff():
         #LS, courant, delta_t = init_classes()
         
         t1 = time.time()
-        print self.LS.total_time+self.delta_t,
-        self.LS.solveStep(self.delta_t)
+        print self.LS.total_time+self.courant.dt,
+        self.LS.solveStep(self.courant)
         
         
         
         while (self.LS.total_time <= gl.end_time):
             #print LS.total_time/60, gl.end_time
             self.LS.hold = self.LS.hnew.copy()
-            print self.LS.total_time+self.delta_t, 
-            self.LS.solveStep(self.delta_t)
-
+            print self.LS.total_time+self.courant.dt, 
+            self.LS.solveStep(self.courant)
+            
+        print 'cas vypoctu', time.time() - t1
         return 0
 
 

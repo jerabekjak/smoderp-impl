@@ -6,7 +6,7 @@ import math
 import time
 import ConfigParser
 
-from smoderp2d.main_classes.General import Globals
+from smoderp2d.arrs.General import Globals
 from smoderp2d.providers.logger import Logger
 
 class BaseProvider(object):

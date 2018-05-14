@@ -1,5 +1,5 @@
 import math
-from smoderp2d.main_classes.General import Globals
+from smoderp2d.arrs.General import Globals
 import smoderp2d.constants as constants
 
 courantMax = 1.0
@@ -18,11 +18,11 @@ def update_hb(i,j,V_to_rill, b):
     newb = math.sqrt(V/(rr*l))
     #if ppp :  print 'zvetsuje', newb, b, V
     if (V > 0):
-        if newb > b:
-            b = newb
-            h = V/(b*l)
-        else:
-            h = V/(b*l)
+        #if newb > b:
+        b = newb
+        h = V/(b*l)
+        #else:
+            #h = V/(b*l)
     else:
         h = V/(b*l)
 
@@ -44,11 +44,11 @@ def rill(i,j,hrill,dt,sur):
     R_rill = (hloc*b)/(b + 2*hloc)
     v = math.pow(R_rill, (2.0/3.0)) * 1/n * math.pow(slope/100, 0.5)  # m/s
     #raw_input()
-    return v
+    return hloc*b*v
     
 def rill_pass(i,j,hrill,dt,sur):
     
-    pass
+    return 0
 
     
 def rillold(V_to_rill, rillRatio, l, b, delta_t, ratio, n, slope, pixelArea, ppp=False):

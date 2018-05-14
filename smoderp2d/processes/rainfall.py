@@ -7,7 +7,7 @@ import numpy as np
 import smoderp2d.constants as constants
 import sys
 import smoderp2d.io_functions.prt as prt
-from smoderp2d.main_classes.General import Globals
+from smoderp2d.arrs.General import Globals
 
 
 # definice erroru  na urovni modulu

@@ -10,8 +10,8 @@ import copy
 import numpy as np
 
 
-from smoderp2d.main_classes.Surface import runoff
-from smoderp2d.main_classes.Surface import surface_retention
+from smoderp2d.arrs.Surface import runoff
+from smoderp2d.arrs.Surface import surface_retention
 
 infilt_capa = 0
 infilt_time = 0

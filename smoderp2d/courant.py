@@ -8,7 +8,7 @@ from smoderp2d.tools.tools import get_argv
 import smoderp2d.io_functions.prt as prt
 
 
-from smoderp2d.main_classes.General import Globals as Gl
+from smoderp2d.arrs.General import Globals as Gl
 
 # Contains variables and methods needed for time step size handling
 #
@@ -35,12 +35,16 @@ class Courant():
         self.co_pre = 'sheet'
         self.maxratio = 10
         self.max_delta_t = Gl.maxdt
+        self.min_delta_t = 0.1
+        self.max_iter    = 6
+        self.min_iter    = 3
         self.max_delta_t_mult = 1.0
+        
 
     # Store the original guess time step
     #
     def set_time_step(self, dt):
-        self.orig_dt = dt
+        self.dt = dt
 
     # Resets the self.cour_most and self.cour_speed after each time stop computation is successfully completed
     #
@@ -48,7 +52,14 @@ class Courant():
         self.cour_most = 0
         self.cour_speed = 0
         self.cour_most_rill = 0
-
+    
+    
+    def check_time(self,iter_):
+        if iter_ >= self.max_iter :
+            self.dt = max(0.1,self.dt*0.3)
+        if iter_ <= self.min_iter :
+            self.dt = min(self.max_delta_t,self.dt*1.3)
+            
     # Guesses the initial time step.
     #
     #  the guess is based on the maximum \e a and \e b parameters of the kinematic wave equation and critical water level
