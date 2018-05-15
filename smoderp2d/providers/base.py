@@ -229,17 +229,19 @@ class BaseProvider(object):
         """
         sys.stdout.write('{}{}'.format(line, os.linesep))
 
-    def progress(self, i, dt, iter_, total_time):
+    def progress(self, dt, iter_, total_time):
         self.message("Total time      [s]: {0:.2f}".format(total_time)) # TODO: ms ???
         self.message("Time step       [s]: {0:.2f}".format(dt))
         self.message("Time iterations    : {0:d}".format(iter_))
-        self.message("Percentage done [%]: {0:.2f}".format(i))
-        if i > 0:
-            diffTime = time.time() - self.startTime
-            remaining = (100.0 * diffTime) / i - diffTime
-        else:
-            remaining = '??'
-        self.message("Time to end     [s]: {0:.2f}".format(remaining))
+        perc    = total_time/Globals.end_time*100.0
+        diffTime = time.time() - self.startTime
+        self.message("Percentage done [%]: {0:.2f}".format(perc))
+        if perc>0 : 
+            to_end    = diffTime*100/perc-diffTime
+            self.message("Time to end     [s]: {0:.2f}".format(to_end))
+        else :
+            to_end    = '???'
+            self.message("Time to end     [s]: {}".format(to_end))
         self.message("-" * 40)
         
     def logo(self):

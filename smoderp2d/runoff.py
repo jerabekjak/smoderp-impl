@@ -46,10 +46,9 @@ class Runoff():
 
     def __init__(self, provider):
         gl = Globals()
-        self.delta_t = Globals.maxdt
 
         self.iter_crit = IterCrit()
-        self.iter_crit.set_time_step(self.delta_t)
+        self.iter_crit.set_time_step(Globals.maxdt)
 
         self.LS = ImplicitSolver()
         self.provider = provider
@@ -62,13 +61,16 @@ class Runoff():
         gl = Globals()
         #LS, courant, delta_t = init_classes()
 
-        
+        self.provider.progress(self.iter_crit.dt, 0, self.LS.total_time)
         self.LS.solveStep(self.iter_crit)
 
-        self.iter_crit.reset()
-
+        
+        count_dt = 1
         while (self.LS.total_time <= gl.end_time):
+            self.iter_crit.reset()
             self.LS.hold = self.LS.hnew.copy()
             self.LS.solveStep(self.iter_crit)
+            self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
+            count_dt += 1
 
         return 0
