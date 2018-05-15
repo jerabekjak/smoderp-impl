@@ -1,0 +1,281 @@
+from smoderp2d.arrs.General import Globals
+from smoderp2d.arrs.Surface import Surface
+from smoderp2d.tools.tools import make_ASC_raster
+from smoderp2d.tools.tools import make_sur_raster
+from smoderp2d.arrs.Surface import Surface
+from smoderp2d.exceptions import MaxIterationExceeded
+import smoderp2d.processes.rainfall as rain_f
+import smoderp2d.processes.infiltration as infilt
+import smoderp2d.flow_algorithm.D8 as D8_
+from smoderp2d.io_functions import hydrographs as wf
+
+from scipy.sparse import csr_matrix
+import numpy as np
+import os
+import sys
+
+
+
+
+def init_getIJel():
+    """Documentation for a function init_getIJel()
+
+    popis:
+    funkce ma vytvorit pole a vektory na zjistovani
+    odpovidajiciho radku a sloupce rasteru podle pozive v lin soustave
+    a odpovidajiciho elementu v soustave podle sloupce a rarku v rasteru
+
+    return el      - pocet elementu v soustave
+    return getEl   - i j pole, obsahuje pozici v soustave
+    return getElIN - i j pole, pozive vtekajicich elementu
+    return getIJ   - vektor, vrati odpovidajici i j pro dany element v soustave
+    """
+
+    gl = Globals()
+    inflows = D8_.new_inflows(gl.mat_fd)
+
+    r = gl.get_rows()
+    c = gl.get_cols()
+    rr = gl.get_rrows()
+    rc = gl.get_rcols()
+    br = gl.get_bor_rows()
+    bc = gl.get_bor_cols()
+
+    getEl = np.zeros([r, c], int)
+    getIJ = []
+    getElIN = []
+
+    el = int(-1)
+    # prvni cyklus priradi
+    # k i j bunky jeji poradi ve vektoru
+    # a k elementu vektoru i j bunky
+    for i in rr:
+        for j in rc[i]:
+            el += int(1)
+            getIJ.append([i, j])
+            getEl[i][j] = el
+
+    for i in br:
+        for j in bc[i]:
+            el += int(1)
+            getIJ.append([i, j])
+            getEl[i][j] = el
+
+    # druhy cyklus priradi
+    # k elementu list elementu v inflows
+    for i in rr:
+        for j in rc[i]:
+            n = len(inflows[i][j])
+            tmp = [-int(99)] * n
+
+            for z in range(n):
+                ax = inflows[i][j][z][0]
+                bx = inflows[i][j][z][1]
+                iax = i + ax
+                jbx = j + bx
+                tmp[z] = getEl[iax][jbx]
+
+            getElIN.append(tmp)
+
+    for i in br:
+        for j in bc[i]:
+            n = len(inflows[i][j])
+            tmp = [-int(99)] * n
+
+            for z in range(n):
+                ax = inflows[i][j][z][0]
+                bx = inflows[i][j][z][1]
+                iax = i + ax
+                jbx = j + bx
+                tmp[z] = getEl[iax][jbx]
+
+            getElIN.append(tmp)
+
+    # toto je pokazde stejne
+    indptr = [0]
+    # toto je pokazde stejne
+    indices = []
+
+    for iel in range(el):
+        indices.append(iel)
+        for inel in getElIN[iel]:
+            indices.append(inel)
+        indptr.append(len(indices))
+
+    return el, getEl, getElIN, getIJ, indices, indptr
+
+
+class ImplicitSolver:
+
+    def __init__(self):
+
+        gl = Globals()
+        r = gl.get_rows()
+        c = gl.get_cols()
+
+        # interval srazky
+        self.tz = 0
+        # aktualni cas programu
+        self.total_time = 0
+
+        self.nEl, self.IJtoEl_a, self.ELinEL_l, self.ELtoIJ, self.indices, self.indptr = init_getIJel()
+
+        #self.A = np.zeros([self.nEl, self.nEl], float)
+        self.b = np.zeros([self.nEl], float)
+        self.hnew = np.ones([self.nEl], float)
+        self.hold = np.zeros([self.nEl], float)
+        
+        # variable counts rills
+        self.rill_count = 0
+        
+        self.sur = Surface()
+        
+        # opens files for storing hydrographs
+        if gl.points and gl.points != "#":
+            self.hydrographs = wf.Hydrographs()
+            arcgis = gl.arcgis
+            if not arcgis:
+                with open(os.path.join(gl.outdir, 'points.txt'), 'w') as fd:
+                    for i in range(len(gl.array_points)):
+                        fd.write('{} {} {} {}'.format(
+                            gl.array_points[i][0], gl.array_points[i][3],
+                            gl.array_points[i][4], os.linesep
+                        ))
+        else:
+            self.hydrographs = wf.HydrographsPass()
+            
+        for i in Globals.rr:
+            for j in Globals.rc[i]:
+                self.hydrographs.write_hydrographs_record(
+                    i,
+                    j,
+                    0,
+                    self,
+                    first=True
+                )
+        
+
+    def fillAmat(self, dt):
+        gl = Globals()
+        from smoderp2d.processes.surface import sheet_flowb_
+        if gl.isRill :
+            from smoderp2d.processes.rill    import rill
+        else :
+            from smoderp2d.processes.rill    import rill_pass
+            rill = rill_pass
+
+        PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
+
+        for iii in gl.get_combinatIndex():
+            index = iii[0]
+            k = iii[1]
+            s = iii[2]
+            iii[3] = infilt.phlilip(
+                k, s, dt, self.total_time, gl.get_NoDataValue())
+
+        data = []
+        self.rill_count = 0
+        for iel in range(self.nEl):
+
+            i = self.ELtoIJ[iel][0]
+            j = self.ELtoIJ[iel][1]
+
+            # infiltration
+            inf = infilt.philip_infiltration(
+                gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
+            if inf >= self.hold[iel]:
+                inf = self.hold[iel]
+            s
+            # overland outflow    
+            if self.hnew[iel] > 0:
+                hcrit = gl.get_hcrit(i,j)
+                a = gl.get_aa(i,j)
+                b = gl.get_b(i,j)
+                hsheet = min(hcrit,self.hnew[iel])
+                hrill  = max(0,    self.hnew[iel]-hcrit)
+                sf     = sheet_flowb_(a,b,hsheet)
+                
+                rf = 0
+                if (hrill>0): 
+                    self.rill_count += 1
+                    rf = rill(i,j,hrill,dt,self.sur.arr[i][j])/self.hnew[iel]
+                    #if (iel == 41): 
+                        #print self.hnew[iel], hsheet, hrill, sf, rf
+                        
+                else : 
+                    pass
+                    #if (iel == 41):  
+                        #print self.hnew[iel], hsheet, hrill, sf, rf
+                
+                #if (iel==50) :
+                    #print iel, hsheet, hrill, sf, rf
+                
+                data.append(
+                    (1./dt + gl.dx * (sf) / gl.pixel_area )  + rf/ gl.pixel_area)
+            else:
+                data.append((1./dt))
+            #print max(gl.dx * (sf) / gl.pixel_area*dt/gl.dx, rf/ gl.pixel_area * dt / gl.dx)    
+            # TODO to by meli byt jiny acka a becka 
+            # pokud to vteka z jineho lu nebo pudy
+            for inel in self.ELinEL_l[iel]:
+                if self.hnew[inel] > 0:
+                    i = self.ELtoIJ[inel][0]
+                    j = self.ELtoIJ[inel][1]
+                    hcrit = gl.get_hcrit(i,j)
+                    a = gl.get_aa(i,j)
+                    b = gl.get_b(i,j)
+                    
+                    hsheet = min(hcrit,self.hnew[inel])
+                    hrill  = max(0,    self.hnew[inel]-hcrit)
+                    sf     = sheet_flowb_(a,b,hsheet)
+                    rf = 0
+                    if (hrill > 0): rf = rill(i,j,hrill,dt,self.sur.arr[i][j])/self.hnew[inel]
+
+                    data.append(-gl.dx * (sf) / gl.pixel_area - rf/ gl.pixel_area)
+                else:
+                    data.append(0)
+            
+            self.b[iel] = self.hold[iel]/dt + PS/dt - inf/dt
+
+        self.A = csr_matrix((data, self.indices, self.indptr),
+                            shape=(self.nEl, self.nEl), dtype=float)
+
+
+    def solveStep(self, cour):
+        from scipy.sparse.linalg import spsolve
+        #Globals
+        iter_ = 0
+        maxIter = 50
+        hewp = self.hnew.copy()
+        hewp.fill(0.0)
+        
+        while (abs(np.sum((hewp - self.hnew))) > 0.000001):
+            iter_ += 1
+            #print iter_
+            self.fillAmat(cour.dt)
+            hewp = self.hnew.copy()
+            self.hnew = spsolve(self.A, self.b)
+            #raw_input()
+            #print hewp-self.hnew
+            
+            #cour.rill_check(self.rill_count)
+            if (iter_ > maxIter):
+                raise  MaxIterationExceeded(maxIter, self.total_time)
+
+
+        
+        
+        for i in Globals.rr:
+            for j in Globals.rc[i]:
+                self.hydrographs.write_hydrographs_record(
+                    i,
+                    j,
+                    cour.dt,
+                    self
+                )
+        print 'dopocten krok po ', iter_, 'iteracixh', cour.dt, 'ryh je', self.rill_count
+        cour.check_time(iter_)
+        #print self.hnew[20]
+        self.total_time += cour.dt
+        #print self.hnew[10], self.hnew[20]
+        make_sur_raster(self, 'out', self.total_time)
