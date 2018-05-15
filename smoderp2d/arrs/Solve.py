@@ -155,14 +155,18 @@ class ImplicitSolver:
     def fillAmat(self, dt):
         gl = Globals()
         from smoderp2d.processes.surface import sheet_flowb_
+        
+        # if rills are calculated 
         if gl.isRill:
             from smoderp2d.processes.rill import rill
         else:
             from smoderp2d.processes.rill import rill_pass
             rill = rill_pass
-
+        
+        # potential precipitation
         PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
 
+        # prepares infiltration table 
         for iii in gl.get_combinatIndex():
             index = iii[0]
             k = iii[1]
@@ -170,6 +174,7 @@ class ImplicitSolver:
             iii[3] = infilt.phlilip(
                 k, s, dt, self.total_time, gl.get_NoDataValue())
 
+        # creates empty list for data
         data = []
         self.rill_count = 0
         for iel in range(self.nEl):
@@ -186,10 +191,8 @@ class ImplicitSolver:
             # overland outflow
             if self.hnew[iel] > 0:
                 hcrit = gl.get_hcrit(i, j)
-                #Logger.debug('hcrit natvrdo')
-                #hcrit = 0.01
                 a = gl.get_aa(i, j)
-                b = gl.get_b(i, j)
+                b = gl.get_b(i, j)  
                 hsheet = min(hcrit, self.hnew[iel])
                 hrill = max(0, self.hnew[iel] - hcrit)
                 sf = sheet_flowb_(a, b, hsheet)

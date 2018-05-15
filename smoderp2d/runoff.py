@@ -62,21 +62,42 @@ class Runoff():
         self.provider.progress(self.iter_crit.dt, 0, self.LS.total_time)
         self.LS.total_time += self.iter_crit.dt
         self.iter_crit.check_time_step()
-
+        
+        ok = 1
         while (self.LS.total_time <= gl.end_time):
             self.iter_crit.reset()
-            self.LS.hold = self.LS.hnew.copy()
+            if ok == 1: 
+                self.LS.hold = self.LS.hnew.copy()
             ok = self.LS.solveStep(self.iter_crit)
             if ok == 0 :
                 self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
                 self.iter_crit.check_time_step02()
                 self.provider.message('repeating time step')
+                self.provider.message("-" * 40)
             if ok == 1:
                 self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
                 self.LS.total_time += self.iter_crit.dt
                 self.iter_crit.check_time_step()
         
-        self.provider.message('total time ' + str(time.time()-self.provider.startTime))
+        self.provider.message('total time  [s]' + str(time.time()-self.provider.startTime))
         #Logger.debug('hcrit natvrdo')
         
         return 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
