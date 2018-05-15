@@ -9,6 +9,7 @@ import ConfigParser
 from smoderp2d.arrs.General import Globals
 from smoderp2d.providers.logger import Logger
 
+
 class BaseProvider(object):
     def __init__(self):
         """Create argument parser."""
@@ -41,58 +42,58 @@ class BaseProvider(object):
 
     def parse_data(self, indata):
         # TODO: rewrite save pickle to use dict instead of list
-        
+
         data = {}
         data['br'],                       \
-        data['bc'],                       \
-        data['mat_boundary'],             \
-        data['rr'],                       \
-        data['rc'],                       \
-        data['outletCells'],              \
-        data['xllcorner'],                \
-        data['yllcorner'],                \
-        data['NoDataValue'],              \
-        data['array_points'],             \
-        data['c'],                        \
-        data['r'],                        \
-        data['combinatIndex'],            \
-        data['maxdt'],                  \
-        data['mat_pi'],                   \
-        data['mat_ppl'],                  \
-        data['surface_retention'],        \
-        data['mat_inf_index'],            \
-        data['mat_hcrit'],                \
-        data['mat_aa'],                   \
-        data['mat_b'],                    \
-        data['mat_reten'],                \
-        data['mat_fd'],                   \
-        data['mat_dmt'],                  \
-        data['mat_efect_vrst'],           \
-        data['mat_slope'],                \
-        data['mat_nan'],                  \
-        data['mat_a'],                    \
-        data['mat_n'],                    \
-        data['outdir'],                   \
-        data['pixel_area'],               \
-        data['points'],                   \
-        data['poradi'],                   \
-        data['end_time'],                 \
-        data['spix'],                     \
-        data['state_cell'],               \
-        data['temp'],                     \
-        data['type_of_computing'],        \
-        data['vpix'],                     \
-        data['mfda'],                     \
-        data['sr'],                       \
-        data['itera'],                    \
-        data['toky'],                     \
-        data['cell_stream'],              \
-        data['mat_tok_reach'],            \
-        data['STREAM_RATIO'],             \
-        data['tokyLoc'] = indata
+            data['bc'],                       \
+            data['mat_boundary'],             \
+            data['rr'],                       \
+            data['rc'],                       \
+            data['outletCells'],              \
+            data['xllcorner'],                \
+            data['yllcorner'],                \
+            data['NoDataValue'],              \
+            data['array_points'],             \
+            data['c'],                        \
+            data['r'],                        \
+            data['combinatIndex'],            \
+            data['maxdt'],                  \
+            data['mat_pi'],                   \
+            data['mat_ppl'],                  \
+            data['surface_retention'],        \
+            data['mat_inf_index'],            \
+            data['mat_hcrit'],                \
+            data['mat_aa'],                   \
+            data['mat_b'],                    \
+            data['mat_reten'],                \
+            data['mat_fd'],                   \
+            data['mat_dmt'],                  \
+            data['mat_efect_vrst'],           \
+            data['mat_slope'],                \
+            data['mat_nan'],                  \
+            data['mat_a'],                    \
+            data['mat_n'],                    \
+            data['outdir'],                   \
+            data['pixel_area'],               \
+            data['points'],                   \
+            data['poradi'],                   \
+            data['end_time'],                 \
+            data['spix'],                     \
+            data['state_cell'],               \
+            data['temp'],                     \
+            data['type_of_computing'],        \
+            data['vpix'],                     \
+            data['mfda'],                     \
+            data['sr'],                       \
+            data['itera'],                    \
+            data['toky'],                     \
+            data['cell_stream'],              \
+            data['mat_tok_reach'],            \
+            data['STREAM_RATIO'],             \
+            data['tokyLoc'] = indata
 
         return data
-        
+
     def _load_roff(self, indata):
         """Load configuration data for roff compurtation only.
 
@@ -141,7 +142,7 @@ class BaseProvider(object):
         data['maxdt'] = self._config.getfloat('time', 'maxdt')
 
         return data
-    
+
     def _set_globals(self, data):
         """Set global variables.
 
@@ -164,14 +165,14 @@ class BaseProvider(object):
         Globals.isStream = self._comp_type(data['type_of_computing'])['stream']
         Globals.arcgis = False
         Globals.prtTimes = data['prtTimes']
-        
+
     def _cleanup(self):
         """Clean-up output directory."""
         output = Globals.outdir
         if os.path.exists(output):
             shutil.rmtree(output)
         os.makedirs(output)
-        
+
     def load(self):
         """Load configuration data."""
         if self._args.typecomp == 'roff':
@@ -188,7 +189,7 @@ class BaseProvider(object):
 
     def _comp_type(self, tc):
         """Returns boolean information about the components of the computation.
-        
+
         Return 4 true/values for rill, subflow, stream, diffuse
         presence/non-presence.
 
@@ -221,7 +222,7 @@ class BaseProvider(object):
             ret['only_surface'] = True
 
         return ret
-        
+
     def message(self, line):
         """Print message.
 
@@ -230,20 +231,21 @@ class BaseProvider(object):
         sys.stdout.write('{}{}'.format(line, os.linesep))
 
     def progress(self, dt, iter_, total_time):
-        self.message("Total time      [s]: {0:.2f}".format(total_time)) # TODO: ms ???
+        self.message("Total time      [s]: {0:.2f}".format(
+            total_time))  # TODO: ms ???
         self.message("Time step       [s]: {0:.2f}".format(dt))
         self.message("Time iterations    : {0:d}".format(iter_))
-        perc    = total_time/Globals.end_time*100.0
+        perc = total_time / Globals.end_time * 100.0
         diffTime = time.time() - self.startTime
         self.message("Percentage done [%]: {0:.2f}".format(perc))
-        if perc>0 : 
-            to_end    = diffTime*100/perc-diffTime
+        if perc > 0:
+            to_end = diffTime * 100 / perc - diffTime
             self.message("Time to end     [s]: {0:.2f}".format(to_end))
-        else :
-            to_end    = '???'
+        else:
+            to_end = '???'
             self.message("Time to end     [s]: {}".format(to_end))
         self.message("-" * 40)
-        
+
     def logo(self):
         """Print Smoderp2d ascii-style logo."""
         with open(os.path.join(os.path.dirname(__file__), 'txtlogo.txt'), 'r') as fd:

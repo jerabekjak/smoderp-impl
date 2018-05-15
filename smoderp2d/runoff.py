@@ -61,8 +61,10 @@ class Runoff():
         gl = Globals()
         #LS, courant, delta_t = init_classes()
 
-        self.provider.progress(self.iter_crit.dt, 0, self.LS.total_time)
         self.LS.solveStep(self.iter_crit)
+        self.provider.progress(self.iter_crit.dt, 0, self.LS.total_time)
+        self.LS.total_time += self.iter_crit.dt
+        self.iter_crit.check_time()
 
         
         count_dt = 1
@@ -71,6 +73,8 @@ class Runoff():
             self.LS.hold = self.LS.hnew.copy()
             self.LS.solveStep(self.iter_crit)
             self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
+            self.LS.total_time += self.iter_crit.dt
+            self.iter_crit.check_time()
             count_dt += 1
 
         return 0

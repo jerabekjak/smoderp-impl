@@ -265,7 +265,5 @@ class ImplicitSolver:
                     iter_crit.dt,
                     self
                 )
-                
-        iter_crit.check_time()
-        self.total_time += iter_crit.dt
+
         #make_sur_raster(self, 'out', self.total_time)
