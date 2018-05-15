@@ -34,29 +34,25 @@ import sys
 from smoderp2d.arrs.General import Globals
 from smoderp2d.arrs.Solve import ImplicitSolver
 
+from smoderp2d.iter_crit import IterCrit
 
 
-from smoderp2d.courant import Courant
+# def init_classes():
 
-
-#def init_classes():
-
-
-    #return LS, courant, delta_t
+# return LS, courant, delta_t
 
 
 class Runoff():
-    
-    def __init__(self,provider):
+
+    def __init__(self, provider):
         gl = Globals()
         self.delta_t = Globals.maxdt
 
-        self.courant = Courant()
-        self.courant.set_time_step(self.delta_t)
+        self.iter_crit = IterCrit()
+        self.iter_crit.set_time_step(self.delta_t)
 
         self.LS = ImplicitSolver()
-        
-
+        self.provider = provider
 
     def run(self):
         import smoderp2d.flow_algorithm.D8 as D8_
@@ -65,24 +61,14 @@ class Runoff():
         # vse se hodi do ogjektu Globals as Gl
         gl = Globals()
         #LS, courant, delta_t = init_classes()
+
         
-        t1 = time.time()
-        print self.LS.total_time+self.courant.dt,
-        self.LS.solveStep(self.courant)
-        
-        self.courant.reset()
-        
-        
-        
+        self.LS.solveStep(self.iter_crit)
+
+        self.iter_crit.reset()
+
         while (self.LS.total_time <= gl.end_time):
-            #print LS.total_time/60, gl.end_time
             self.LS.hold = self.LS.hnew.copy()
-            print self.LS.total_time+self.courant.dt, 
-            self.LS.solveStep(self.courant)
-            
-        print 'cas vypoctu', time.time() - t1
+            self.LS.solveStep(self.iter_crit)
+
         return 0
-
-
-
-

@@ -241,7 +241,7 @@ class ImplicitSolver:
                             shape=(self.nEl, self.nEl), dtype=float)
 
 
-    def solveStep(self, cour):
+    def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
         #Globals
         iter_ = 0
@@ -252,13 +252,13 @@ class ImplicitSolver:
         while (abs(np.sum((hewp - self.hnew))) > 0.000001):
             iter_ += 1
             #print iter_
-            self.fillAmat(cour.dt)
+            self.fillAmat(iter_crit.dt)
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             #raw_input()
             #print hewp-self.hnew
             
-            #cour.rill_check(self.rill_count)
+            #iter_crit.rill_check(self.rill_count)
             if (iter_ > maxIter):
                 raise  MaxIterationExceeded(maxIter, self.total_time)
 
@@ -270,12 +270,12 @@ class ImplicitSolver:
                 self.hydrographs.write_hydrographs_record(
                     i,
                     j,
-                    cour.dt,
+                    iter_crit.dt,
                     self
                 )
-        print 'dopocten krok po ', iter_, 'iteracixh', cour.dt, 'ryh je', self.rill_count
-        cour.check_time(iter_)
+        print 'dopocten krok po ', iter_, 'iteracixh', iter_crit.dt, 'ryh je', self.rill_count
+        iter_crit.check_time(iter_)
         #print self.hnew[20]
-        self.total_time += cour.dt
+        self.total_time += iter_crit.dt
         #print self.hnew[10], self.hnew[20]
         make_sur_raster(self, 'out', self.total_time)
