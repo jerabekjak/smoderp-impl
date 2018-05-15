@@ -105,7 +105,7 @@ def init_getIJel():
 
 class ImplicitSolver:
 
-    def __init__(self):
+    def __init__(self,iter_crit):
 
         gl = Globals()
         r = gl.get_rows()
@@ -147,7 +147,7 @@ class ImplicitSolver:
                 self.hydrographs.write_hydrographs_record(
                     i,
                     j,
-                    0,
+                    iter_crit,
                     self,
                     first=True
                 )
@@ -279,7 +279,7 @@ class ImplicitSolver:
                 self.hydrographs.write_hydrographs_record(
                     i,
                     j,
-                    iter_crit.dt,
+                    iter_crit,
                     self
                 )
 

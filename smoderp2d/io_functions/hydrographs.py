@@ -133,7 +133,7 @@ class Hydrographs:
                         self.point_int[i][4]) + '\n'
                 header += '# A pixel size is [m2]:\n'
                 header += '# ' + str(self.pixel_area) + '\n'
-                header += '# time[s];hsheet[m];hrill[m];htot[m]'
+                header += '# time[s];hsheet[m];hrill[m];htot[m];dt[s];n-iter[-]'
                 #if not(extraout):
                     #header += '# time[s];deltaTime[s];rainfall[m];totalWaterLevel[m];surfaceFlow[m3/s];surfaceVolRunoff[m3]'
                 #else:
@@ -165,7 +165,7 @@ class Hydrographs:
         prt.message("Hydrographs files has been created...")
 
     def write_hydrographs_record(
-            self, i, j, dt, LS, first=False, isStream = False,  sep=';'):
+            self, i, j, iter_crit, LS, first=False, isStream = False,  sep=';'):
         gl = Gl()
         
         if (first) :
@@ -174,12 +174,16 @@ class Hydrographs:
                 m = self.point_int[ip][2]
                 if i == l and j == m:
                     hcrit = gl.get_hcrit(i,j)
+                    #Logger.debug('hcrit natvrdo')
+                    #hcrit = 0.01 
                     hsheet = min(hcrit,LS.hold[LS.IJtoEl_a[i][j]])
                     hrill  = max(0,    LS.hold[LS.IJtoEl_a[i][j]]-hcrit)
-                    line = str(LS.total_time + dt) + sep
+                    line = str(LS.total_time + iter_crit.dt) + sep
                     line += str(hsheet) + sep
                     line += str(hrill) + sep
-                    line += str(LS.hold[LS.IJtoEl_a[i][j]])
+                    line += str(LS.hold[LS.IJtoEl_a[i][j]]) + sep
+                    line += str(iter_crit.dt) + sep
+                    line += str(iter_crit.iter_)
                     line += '\n'
                     self.files[ip].writelines(line)    
         else :
@@ -188,12 +192,16 @@ class Hydrographs:
                 m = self.point_int[ip][2]
                 if i == l and j == m:
                     hcrit = gl.get_hcrit(i,j)
+                    #Logger.debug('hcrit natvrdo')
+                    #hcrit = 0.01
                     hsheet = min(hcrit,LS.hnew[LS.IJtoEl_a[i][j]])
                     hrill  = max(0,    LS.hnew[LS.IJtoEl_a[i][j]]-hcrit)
-                    line = str(LS.total_time + dt) + sep
+                    line = str(LS.total_time + iter_crit.dt) + sep
                     line += str(hsheet) + sep
                     line += str(hrill) + sep
-                    line += str(LS.hnew[LS.IJtoEl_a[i][j]])
+                    line += str(LS.hnew[LS.IJtoEl_a[i][j]]) + sep
+                    line += str(iter_crit.dt) + sep
+                    line += str(iter_crit.iter_)
                     line += '\n'
                     self.files[ip].writelines(line)   
             

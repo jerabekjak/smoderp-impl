@@ -50,7 +50,7 @@ class Runoff():
         self.iter_crit = IterCrit()
         self.iter_crit.set_time_step(Globals.maxdt)
 
-        self.LS = ImplicitSolver()
+        self.LS = ImplicitSolver(self.iter_crit)
         self.provider = provider
 
     def run(self):
