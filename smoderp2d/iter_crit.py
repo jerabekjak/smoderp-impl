@@ -17,10 +17,10 @@ class IterCrit():
     #
     def __init__(self):
         self.iter_ = 0
-        self.crit_iter_ = 50
+        self.crit_iter_ = 10
         self.max_delta_t = Gl.maxdt
         self.min_delta_t = 0.1
-        self.max_iter = 10
+        self.max_iter = 7
         self.min_iter = 4
         self.pre_rill_count = 0
 
@@ -28,24 +28,40 @@ class IterCrit():
     #
     def set_time_step(self, dt):
         self.dt = dt
-
+    
+    # Reset the iteration count
+    #
     def reset(self):
         self.pre_rill_count = 0
         self.iter_ = 0
-        
+    
+    # Increase interataion count
+    # 
     def iter_up(self):
         self.iter_ += 1
-        
+    
+    # Check max iteration reached
     def crit_iter_check(self,total_time):
-        if (self.iter_ > self.crit_iter_):
-            raise MaxIterationExceeded(self.crit_iter_, total_time)
-        
-    def check_time(self):
+        if (self.iter_ >= self.crit_iter_):
+            return True
+            #raise MaxIterationExceeded(self.crit_iter_, total_time)
+    
+    # Adjust time step
+    #
+    def check_time_step(self):
         if self.iter_ >= self.max_iter:
             self.dt = max(0.1, self.dt * 0.7)
         if self.iter_ <= self.min_iter:
             self.dt = min(self.max_delta_t, self.dt * 1.3)
-
+            
+    def check_time_step02(self):
+        self.dt = max(0.1, self.dt * 0.3)
+        #if self.iter_ >= self.max_iter:
+        #if self.iter_ <= self.min_iter:
+            #self.dt = min(self.max_delta_t, self.dt * 1.3)
+    
+    # Tranck rill emergency
+    # 
     def rill_check(self, rc):  # rc - rill count
         if rc > self.pre_rill_count:
             self.dt = max(0.1, self.dt * 0.3)

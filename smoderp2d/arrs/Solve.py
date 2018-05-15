@@ -7,7 +7,9 @@ import smoderp2d.processes.infiltration as infilt
 import smoderp2d.flow_algorithm.D8 as D8_
 from smoderp2d.io_functions import hydrographs as wf
 
+from smoderp2d.providers.logger import Logger
 from scipy.sparse import csr_matrix
+
 import numpy as np
 import os
 import sys
@@ -180,10 +182,12 @@ class ImplicitSolver:
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
-            s
+            
             # overland outflow
             if self.hnew[iel] > 0:
                 hcrit = gl.get_hcrit(i, j)
+                #Logger.debug('hcrit natvrdo')
+                #hcrit = 0.01
                 a = gl.get_aa(i, j)
                 b = gl.get_b(i, j)
                 hsheet = min(hcrit, self.hnew[iel])
@@ -218,6 +222,8 @@ class ImplicitSolver:
                     i = self.ELtoIJ[inel][0]
                     j = self.ELtoIJ[inel][1]
                     hcrit = gl.get_hcrit(i, j)
+                    #Logger.debug('hcrit natvrdo')
+                    #hcrit = 0.01
                     a = gl.get_aa(i, j)
                     b = gl.get_b(i, j)
 
@@ -241,21 +247,33 @@ class ImplicitSolver:
 
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
-        # Globals
+
         hewp = self.hnew.copy()
-        hewp.fill(0.0)
+        
+        err = 1
 
-        while (abs(np.sum((hewp - self.hnew))) > 0.000001):
-
+        while (err > 0.000001):
+            
             iter_crit.iter_up()
             self.fillAmat(iter_crit.dt)
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             
-            iter_crit.crit_iter_check(self.total_time)
-            #if (self.iter_ > maxIter):
-                #raise MaxIterationExceeded(maxIter, self.total_time)
-
+            #Logger.debug(hewp)
+            #Logger.debug(abs(np.sum((hewp - self.hnew))))
+            #Logger.debug((hewp - self.hnew))
+            #Logger.debug(err)
+            
+            if (iter_crit.crit_iter_check(self.total_time)) : 
+                return 0
+                 
+            #err = abs(np.sum((hewp - self.hnew)))
+            err = np.sum(hewp - self.hnew)**2.0
+            
+        #Logger.debug(iter_crit.crit_iter_check(self.total_time))
+        #raw_input()
+        
+        # write hydrograph record
         for i in Globals.rr:
             for j in Globals.rc[i]:
                 self.hydrographs.write_hydrographs_record(
@@ -265,4 +283,5 @@ class ImplicitSolver:
                     self
                 )
 
-        #make_sur_raster(self, 'out', self.total_time)
+        make_sur_raster(self, 'out', self.total_time)
+        return 1

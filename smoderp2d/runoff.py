@@ -33,8 +33,8 @@ import sys
 
 from smoderp2d.arrs.General import Globals
 from smoderp2d.arrs.Solve import ImplicitSolver
-
 from smoderp2d.iter_crit import IterCrit
+from smoderp2d.providers.logger import Logger
 
 
 # def init_classes():
@@ -56,25 +56,27 @@ class Runoff():
     def run(self):
         import smoderp2d.flow_algorithm.D8 as D8_
 
-        # taky se vyresi vztypbi soubory nacteni dat
-        # vse se hodi do ogjektu Globals as Gl
         gl = Globals()
-        #LS, courant, delta_t = init_classes()
 
         self.LS.solveStep(self.iter_crit)
         self.provider.progress(self.iter_crit.dt, 0, self.LS.total_time)
         self.LS.total_time += self.iter_crit.dt
-        self.iter_crit.check_time()
+        self.iter_crit.check_time_step()
 
-        
-        count_dt = 1
         while (self.LS.total_time <= gl.end_time):
             self.iter_crit.reset()
             self.LS.hold = self.LS.hnew.copy()
-            self.LS.solveStep(self.iter_crit)
-            self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
-            self.LS.total_time += self.iter_crit.dt
-            self.iter_crit.check_time()
-            count_dt += 1
-
+            ok = self.LS.solveStep(self.iter_crit)
+            if ok == 0 :
+                self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
+                self.iter_crit.check_time_step02()
+                self.provider.message('repeating time step')
+            if ok == 1:
+                self.provider.progress(self.iter_crit.dt, self.iter_crit.iter_, self.LS.total_time)
+                self.LS.total_time += self.iter_crit.dt
+                self.iter_crit.check_time_step()
+        
+        self.provider.message('total time ' + str(time.time()-self.provider.startTime))
+        #Logger.debug('hcrit natvrdo')
+        
         return 0
