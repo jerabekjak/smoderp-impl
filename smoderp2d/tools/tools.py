@@ -1,7 +1,6 @@
 import os
 import sys
 import numpy as np
-import smoderp2d.constants as constants
 from smoderp2d.arrs.General import Globals
 
 

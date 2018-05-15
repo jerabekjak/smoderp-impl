@@ -1,5 +1,4 @@
 from smoderp2d.arrs.General import Globals
-from smoderp2d.arrs.Surface import Surface
 from smoderp2d.tools.tools import make_ASC_raster
 from smoderp2d.tools.tools import make_sur_raster
 from smoderp2d.arrs.Surface import Surface

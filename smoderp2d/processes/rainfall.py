@@ -4,7 +4,6 @@
 # Created by Jan Zajicek, FCE, CTU Prague, 2012-2013
 
 import numpy as np
-import smoderp2d.constants as constants
 import sys
 import smoderp2d.io_functions.prt as prt
 from smoderp2d.arrs.General import Globals
