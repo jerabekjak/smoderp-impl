@@ -119,6 +119,12 @@ class ImplicitSolver:
 
         self.nEl, self.IJtoEl_a, self.ELinEL_l, self.ELtoIJ, self.indices, self.indptr = init_getIJel()
 
+        for item  in self.ELinEL_l:
+            print item
+        sys.exit()
+            
+            
+            
         #self.A = np.zeros([self.nEl, self.nEl], float)
         self.b = np.zeros([self.nEl], float)
         self.hnew = np.ones([self.nEl], float)
