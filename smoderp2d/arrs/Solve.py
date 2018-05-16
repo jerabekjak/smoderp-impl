@@ -24,7 +24,7 @@ def init_getIJel():
     odpovidajiciho radku a sloupce rasteru podle pozive v lin soustave
     a odpovidajiciho elementu v soustave podle sloupce a rarku v rasteru
 
-    return el      - pocet elementu v soustave
+    return nEl      - pocet elementu v soustave
     return getEl   - i j pole, obsahuje pozici v soustave
     return getElIN - i j pole, pozive vtekajicich elementu
     return getIJ   - vektor, vrati odpovidajici i j pro dany element v soustave
@@ -44,28 +44,28 @@ def init_getIJel():
     getIJ = []
     getElIN = []
 
-    el = int(-1)
+    nEl = int(-1)
     # prvni cyklus priradi
     # k i j bunky jeji poradi ve vektoru
     # a k elementu vektoru i j bunky
     for i in rr:
         for j in rc[i]:
-            el += int(1)
+            nEl += int(1)
             getIJ.append([i, j])
-            getEl[i][j] = el
+            getEl[i][j] = nEl
 
     for i in br:
         for j in bc[i]:
-            el += int(1)
+            nEl += int(1)
             getIJ.append([i, j])
-            getEl[i][j] = el
+            getEl[i][j] = nEl
 
     # druhy cyklus priradi
     # k elementu list elementu v inflows
     for i in rr:
         for j in rc[i]:
             n = len(inflows[i][j])
-            tmp = [-int(99)] * n
+            tmp = [-int(99)] * 8
 
             for z in range(n):
                 ax = inflows[i][j][z][0]
@@ -79,7 +79,7 @@ def init_getIJel():
     for i in br:
         for j in bc[i]:
             n = len(inflows[i][j])
-            tmp = [-int(99)] * n
+            tmp = [-int(99)] * 8
 
             for z in range(n):
                 ax = inflows[i][j][z][0]
@@ -95,13 +95,13 @@ def init_getIJel():
     # toto je pokazde stejne
     indices = []
 
-    for iel in range(el):
+    for iel in range(nEl):
         indices.append(iel)
         for inel in getElIN[iel]:
-            indices.append(inel)
+            if inel >= 0 :  indices.append(inel)
         indptr.append(len(indices))
 
-    return el, getEl, getElIN, getIJ, indices, indptr
+    return nEl, getEl, getElIN, getIJ, indices, indptr
 
 
 class ImplicitSolver:
@@ -117,9 +117,9 @@ class ImplicitSolver:
         # aktualni cas programu
         self.total_time = 0
 
-        self.nEl, self.IJtoEl_a, self.ELinEL_l, self.ELtoIJ, self.indices, self.indptr = init_getIJel()
+        self.nEl, self.getEl, self.getElIN, self.getIJ, self.indices, self.indptr = init_getIJel()
 
-        #for item  in self.ELinEL_l:
+        #for item  in self.getElIN:
             #print item
         #sys.exit()
             
@@ -190,8 +190,8 @@ class ImplicitSolver:
         
         
         for iel in range(self.nEl):
-            i = self.ELtoIJ[iel][0]
-            j = self.ELtoIJ[iel][1]
+            i = self.getIJ[iel][0]
+            j = self.getIJ[iel][1]
 
             # infiltration
             
@@ -232,33 +232,35 @@ class ImplicitSolver:
             #print max(gl.dx * (sf) / gl.pixel_area*dt/gl.dx, rf/ gl.pixel_area * dt / gl.dx)
             # TODO to by meli byt jiny acka a becka
             # pokud to vteka z jineho lu nebo pudy
-            for inel in self.ELinEL_l[iel]:
-                if self.hnew[inel] > 0:
-                    i = self.ELtoIJ[inel][0]
-                    j = self.ELtoIJ[inel][1]
-                    hcrit = gl.get_hcrit(i, j)
-                    #Logger.debug('hcrit natvrdo')
-                    #hcrit = 0.01
-                    a = gl.get_aa(i, j)
-                    b = gl.get_b(i, j)
+            for inel in self.getElIN[iel]:
+                if inel >= 0: 
+                    if self.hnew[inel] > 0:
+                        i = self.getIJ[inel][0]
+                        j = self.getIJ[inel][1]
+                        hcrit = gl.get_hcrit(i, j)
+                        #Logger.debug('hcrit natvrdo')
+                        #hcrit = 0.01
+                        a = gl.get_aa(i, j)
+                        b = gl.get_b(i, j)
 
-                    hsheet = min(hcrit, self.hnew[inel])
-                    hrill = max(0, self.hnew[inel] - hcrit)
-                    sf = sheet_flowb_(a, b, hsheet)
-                    rf = 0
-                    if (hrill > 0):
-                        rf = rill(
-                            i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[inel]
+                        hsheet = min(hcrit, self.hnew[inel])
+                        hrill = max(0, self.hnew[inel] - hcrit)
+                        sf = sheet_flowb_(a, b, hsheet)
+                        rf = 0
+                        if (hrill > 0):
+                            rf = rill(
+                                i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[inel]
 
-                    data.append(-gl.dx * (sf) / gl.pixel_area -
-                                rf / gl.pixel_area)
-                else:
-                    data.append(0)
+                        data.append(-gl.dx * (sf) / gl.pixel_area -
+                                    rf / gl.pixel_area)
+                    else:
+                        data.append(0)
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
         t3 = time.time()
         
-        
+        print len(data)
+        print len(self.indices)
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
         t4 = time.time()

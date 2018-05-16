@@ -176,12 +176,12 @@ class Hydrographs:
                     hcrit = gl.get_hcrit(i,j)
                     #Logger.debug('hcrit natvrdo')
                     #hcrit = 0.01 
-                    hsheet = min(hcrit,LS.hold[LS.IJtoEl_a[i][j]])
-                    hrill  = max(0,    LS.hold[LS.IJtoEl_a[i][j]]-hcrit)
+                    hsheet = min(hcrit,LS.hold[LS.getEl[i][j]])
+                    hrill  = max(0,    LS.hold[LS.getEl[i][j]]-hcrit)
                     line = str(LS.total_time + iter_crit.dt) + sep
                     line += str(hsheet) + sep
                     line += str(hrill) + sep
-                    line += str(LS.hold[LS.IJtoEl_a[i][j]]) + sep
+                    line += str(LS.hold[LS.getEl[i][j]]) + sep
                     line += str(iter_crit.dt) + sep
                     line += str(iter_crit.iter_)
                     line += '\n'
@@ -194,12 +194,12 @@ class Hydrographs:
                     hcrit = gl.get_hcrit(i,j)
                     #Logger.debug('hcrit natvrdo')
                     #hcrit = 0.01
-                    hsheet = min(hcrit,LS.hnew[LS.IJtoEl_a[i][j]])
-                    hrill  = max(0,    LS.hnew[LS.IJtoEl_a[i][j]]-hcrit)
+                    hsheet = min(hcrit,LS.hnew[LS.getEl[i][j]])
+                    hrill  = max(0,    LS.hnew[LS.getEl[i][j]]-hcrit)
                     line = str(LS.total_time + iter_crit.dt) + sep
                     line += str(hsheet) + sep
                     line += str(hrill) + sep
-                    line += str(LS.hnew[LS.IJtoEl_a[i][j]]) + sep
+                    line += str(LS.hnew[LS.getEl[i][j]]) + sep
                     line += str(iter_crit.dt) + sep
                     line += str(iter_crit.iter_)
                     line += '\n'
