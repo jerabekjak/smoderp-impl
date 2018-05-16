@@ -65,7 +65,7 @@ def init_getIJel():
     for i in rr:
         for j in rc[i]:
             n = len(inflows[i][j])
-            tmp = [-int(99)] * 8
+            tmp = [-int(99)] * n
 
             for z in range(n):
                 ax = inflows[i][j][z][0]
@@ -79,7 +79,7 @@ def init_getIJel():
     for i in br:
         for j in bc[i]:
             n = len(inflows[i][j])
-            tmp = [-int(99)] * 8
+            tmp = [-int(99)] * n
 
             for z in range(n):
                 ax = inflows[i][j][z][0]
@@ -98,7 +98,7 @@ def init_getIJel():
     for iel in range(nEl):
         indices.append(iel)
         for inel in getElIN[iel]:
-            if inel >= 0 :  indices.append(inel)
+            indices.append(inel)
         indptr.append(len(indices))
 
     return nEl, getEl, getElIN, getIJ, indices, indptr
@@ -233,34 +233,31 @@ class ImplicitSolver:
             # TODO to by meli byt jiny acka a becka
             # pokud to vteka z jineho lu nebo pudy
             for inel in self.getElIN[iel]:
-                if inel >= 0: 
-                    if self.hnew[inel] > 0:
-                        i = self.getIJ[inel][0]
-                        j = self.getIJ[inel][1]
-                        hcrit = gl.get_hcrit(i, j)
-                        #Logger.debug('hcrit natvrdo')
-                        #hcrit = 0.01
-                        a = gl.get_aa(i, j)
-                        b = gl.get_b(i, j)
+                if self.hnew[inel] > 0:
+                    i = self.getIJ[inel][0]
+                    j = self.getIJ[inel][1]
+                    hcrit = gl.get_hcrit(i, j)
+                    #Logger.debug('hcrit natvrdo')
+                    #hcrit = 0.01
+                    a = gl.get_aa(i, j)
+                    b = gl.get_b(i, j)
 
-                        hsheet = min(hcrit, self.hnew[inel])
-                        hrill = max(0, self.hnew[inel] - hcrit)
-                        sf = sheet_flowb_(a, b, hsheet)
-                        rf = 0
-                        if (hrill > 0):
-                            rf = rill(
-                                i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[inel]
+                    hsheet = min(hcrit, self.hnew[inel])
+                    hrill = max(0, self.hnew[inel] - hcrit)
+                    sf = sheet_flowb_(a, b, hsheet)
+                    rf = 0
+                    if (hrill > 0):
+                        rf = rill(
+                            i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[inel]
 
-                        data.append(-gl.dx * (sf) / gl.pixel_area -
-                                    rf / gl.pixel_area)
-                    else:
-                        data.append(0)
+                    data.append(-gl.dx * (sf) / gl.pixel_area -
+                                rf / gl.pixel_area)
+                else:
+                    data.append(0)
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
         t3 = time.time()
         
-        print len(data)
-        print len(self.indices)
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
         t4 = time.time()
