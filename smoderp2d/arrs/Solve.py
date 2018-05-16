@@ -119,9 +119,9 @@ class ImplicitSolver:
 
         self.nEl, self.IJtoEl_a, self.ELinEL_l, self.ELtoIJ, self.indices, self.indptr = init_getIJel()
 
-        for item  in self.ELinEL_l:
-            print item
-        sys.exit()
+        #for item  in self.ELinEL_l:
+            #print item
+        #sys.exit()
             
             
             
