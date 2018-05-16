@@ -86,7 +86,7 @@ def make_sur_raster(IS, output, t):
 
     for i in rrows:
         for j in rcols[i]:
-            el = IS.IJtoEl_a[i][j]
+            el = IS.getEl[i][j]
             arr[i][j] = IS.hnew[el]
 
     outName = output + os.sep + str(int(t)).zfill(10) + 'h' + ".asc"

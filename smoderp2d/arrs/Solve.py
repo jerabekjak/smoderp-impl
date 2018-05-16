@@ -10,6 +10,9 @@ from smoderp2d.io_functions import hydrographs as wf
 from smoderp2d.providers.logger import Logger
 from scipy.sparse import csr_matrix
 
+
+from ctypes import CDLL, POINTER, c_int, c_float
+
 import numpy as np
 import os
 import sys
@@ -100,7 +103,10 @@ def init_getIJel():
         for inel in getElIN[iel]:
             if inel >= 0 :  indices.append(inel)
         indptr.append(len(indices))
-
+    
+    
+    getIJ = np.array(getIJ, dtype=c_int, order='F')
+    
     return nEl, getEl, getElIN, getIJ, indices, indptr
 
 
@@ -127,7 +133,7 @@ class ImplicitSolver:
             
         #self.A = np.zeros([self.nEl, self.nEl], float)
         self.b = np.zeros([self.nEl], float)
-        self.hnew = np.ones([self.nEl], float)
+        self.hnew = np.ones([self.nEl], dtype = c_float)
         self.hold = np.zeros([self.nEl], float)
 
         # variable counts rills
@@ -160,10 +166,9 @@ class ImplicitSolver:
                 )
 
     def fillAmat(self, dt):
-        t1 = time.time()
+        
         gl = Globals()
         from smoderp2d.processes.surface import sheet_flowb_
-        
         # if rills are calculated 
         if gl.isRill:
             from smoderp2d.processes.rill import rill
@@ -183,25 +188,44 @@ class ImplicitSolver:
                 k, s, dt, self.total_time, gl.get_NoDataValue())
 
         # creates empty list for data
-        data = []
-        self.rill_count = 0
+        data = np.ones((len(self.indices)), dtype=c_float)
         
-        t2 = time.time()
+        n_data = len(data)
+        n_mat  = gl.r
+        m_mat  = gl.c
+        n_combinatIndex = len(gl.combinatIndex)
+        m_combinatIndex = len(gl.combinatIndex[0])
         
         
+        # do funkce to musi jit
+        sizes = np.array([n_data,n_mat,m_mat], dtype=c_int)
+            
+        print self.getIJ[0:11][:]
         
-        # tu bude fortran interface
-        
+        for item in range(0,10):
+            print self.getIJ[item][:]
+
         fortran = CDLL('smoderp2d/f/fill_a_mat.so')
-#fortran.elementwise.argtypes = [ POINTER(c_float), 
-                                 #POINTER(c_float), 
-                                 #POINTER(c_float),
-                                 #POINTER(c_int),
-                                 #POINTER(c_int) ]
+        fortran.fill_a_mat.argtypes = [POINTER(c_int),
+                                       POINTER(c_int),
+                                       POINTER(c_int),                                       POINTER(c_float),
+                                       POINTER(c_float),
+                                       POINTER(c_float)] 
+                                       #POINTER(c_float),
+                                       #POINTER(c_int),
+                                       #POINTER(c_int) ]
         
+        #fortran.fill_a_mat.restypes = [ POINTER(c_float), 
+                                       #POINTER(c_float), 
+                                       #POINTER(c_float),
+                                       #POINTER(c_int),
+                                        #POINTER(c_int) ]
         
-        
-        
+        fortran.fill_a_mat(c_int(self.nEl),sizes.ctypes.data_as(POINTER(c_int)),
+                           self.getIJ.ctypes.data_as(POINTER(c_int)),
+                           data.ctypes.data_as(POINTER(c_float)),
+                           self.hnew.ctypes.data_as(POINTER(c_float)),
+                           gl.mat_aa.ctypes.data_as(POINTER(c_float)))
         
         
         
@@ -303,12 +327,8 @@ class ImplicitSolver:
             if (iter_crit.crit_iter_check(self.total_time)) : 
                 return 0
                  
-            #err = abs(np.sum((hewp - self.hnew)))
             err = np.sum(hewp - self.hnew)**2.0
             
-        #Logger.debug(iter_crit.crit_iter_check(self.total_time))
-        #raw_input()
-        
         # write hydrograph record
         for i in Globals.rr:
             for j in Globals.rc[i]:
@@ -319,5 +339,5 @@ class ImplicitSolver:
                     self
                 )
 
-        make_sur_raster(self, 'out', self.total_time)
+        #make_sur_raster(self, 'out', self.total_time)
         return 1
