@@ -13,6 +13,7 @@ from scipy.sparse import csr_matrix
 import numpy as np
 import os
 import sys
+import time
 
 
 def init_getIJel():
@@ -153,6 +154,7 @@ class ImplicitSolver:
                 )
 
     def fillAmat(self, dt):
+        t1 = time.time()
         gl = Globals()
         from smoderp2d.processes.surface import sheet_flowb_
         
@@ -177,12 +179,16 @@ class ImplicitSolver:
         # creates empty list for data
         data = []
         self.rill_count = 0
+        
+        t2 = time.time()
+        
+        
         for iel in range(self.nEl):
-
             i = self.ELtoIJ[iel][0]
             j = self.ELtoIJ[iel][1]
 
             # infiltration
+            
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             if inf >= self.hold[iel]:
@@ -244,10 +250,14 @@ class ImplicitSolver:
                     data.append(0)
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
-
+        t3 = time.time()
+        
+        
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
-
+        t4 = time.time()
+        
+        
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
 
