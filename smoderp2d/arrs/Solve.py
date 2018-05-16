@@ -189,6 +189,25 @@ class ImplicitSolver:
         t2 = time.time()
         
         
+        
+        # tu bude fortran interface
+        
+        fortran = CDLL('smoderp2d/f/fill_a_mat.so')
+#fortran.elementwise.argtypes = [ POINTER(c_float), 
+                                 #POINTER(c_float), 
+                                 #POINTER(c_float),
+                                 #POINTER(c_int),
+                                 #POINTER(c_int) ]
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
@@ -280,10 +299,6 @@ class ImplicitSolver:
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             
-            #Logger.debug(hewp)
-            #Logger.debug(abs(np.sum((hewp - self.hnew))))
-            #Logger.debug((hewp - self.hnew))
-            #Logger.debug(err)
             
             if (iter_crit.crit_iter_check(self.total_time)) : 
                 return 0
