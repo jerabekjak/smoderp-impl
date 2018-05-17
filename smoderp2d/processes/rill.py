@@ -51,6 +51,15 @@ def rill_pass(i,j,hrill,dt,sur):
     return 0
 
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
 def rillold(V_to_rill, rillRatio, l, b, delta_t, ratio, n, slope, pixelArea, ppp=False):
 
     V_rill_runoff = 0
