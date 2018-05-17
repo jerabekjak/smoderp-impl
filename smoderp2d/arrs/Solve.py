@@ -197,20 +197,27 @@ class ImplicitSolver:
         m_combinatIndex = len(gl.combinatIndex[0])
         
         
-        # do funkce to musi jit
-        sizes = np.array([n_data,n_mat,m_mat], dtype=c_int)
-            
-        print self.getIJ[0:11][:]
+        # combinatIndex must be numpy array
+        combinatIndex = np.array(gl.combinatIndex, dtype=c_float, order='F')
         
-        for item in range(0,10):
-            print self.getIJ[item][:]
+        # do funkce to musi jit
+        sizes = np.array([n_data,n_mat,m_mat,n_combinatIndex,m_combinatIndex], dtype=c_int)
+        gl.mat_inf_index = np.asarray(gl.mat_inf_index, dtype=c_int, order='F')
+        gl.mat_aa = np.asarray(gl.mat_aa, dtype=c_int, order='F')
+            
+        
 
+        
         fortran = CDLL('smoderp2d/f/fill_a_mat.so')
-        fortran.fill_a_mat.argtypes = [POINTER(c_int),
-                                       POINTER(c_int),
-                                       POINTER(c_int),                                       POINTER(c_float),
-                                       POINTER(c_float),
-                                       POINTER(c_float)] 
+        fortran.fill_a_mat.argtypes = [POINTER(c_int),    # nel
+                                       POINTER(c_int),    # sizes
+                                       POINTER(c_int),    # getIJ
+                                       POINTER(c_float),  # data
+                                       POINTER(c_float),  # hnew
+                                       POINTER(c_float),  # hold
+                                       POINTER(c_float),  # mat_aa
+                                       POINTER(c_int),  # mat_inf_index
+                                       POINTER(c_float)]  # combinatIndex
                                        #POINTER(c_float),
                                        #POINTER(c_int),
                                        #POINTER(c_int) ]
@@ -221,16 +228,20 @@ class ImplicitSolver:
                                        #POINTER(c_int),
                                         #POINTER(c_int) ]
         
-        fortran.fill_a_mat(c_int(self.nEl),sizes.ctypes.data_as(POINTER(c_int)),
+        fortran.fill_a_mat(c_int(self.nEl),
+                           sizes.ctypes.data_as(POINTER(c_int)),
                            self.getIJ.ctypes.data_as(POINTER(c_int)),
                            data.ctypes.data_as(POINTER(c_float)),
                            self.hnew.ctypes.data_as(POINTER(c_float)),
-                           gl.mat_aa.ctypes.data_as(POINTER(c_float)))
+                           self.hold.ctypes.data_as(POINTER(c_float)),
+                           gl.mat_aa.ctypes.data_as(POINTER(c_float)),
+                           gl.mat_inf_index.ctypes.data_as(POINTER(c_int)),
+                           combinatIndex.ctypes.data_as(POINTER(c_float)))
         
         
         
-        
-        
+        print gl.combinatIndex
+        sys.exit()
         
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
