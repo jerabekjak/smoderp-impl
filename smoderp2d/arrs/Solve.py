@@ -44,7 +44,7 @@ def init_getIJel():
     bc = gl.get_bor_cols()
 
     getEl = np.zeros([r, c], int)
-    getIJ = []
+    getIJ = [] 
     getElIN = []
 
     nEl = int(-1)
@@ -126,9 +126,6 @@ class ImplicitSolver:
 
         self.nEl, self.getEl, self.getElIN, self.getIJ, self.indices, self.indptr = init_getIJel()
 
-        #for item  in self.getElIN:
-            #print item
-        #sys.exit()
             
             
             
