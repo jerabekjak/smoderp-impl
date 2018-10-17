@@ -41,10 +41,10 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
         j = getIJ(iel,2)
         
         ! caluca current infiltration
-        inf = philips_infiltration(mat_inf_index(i,j),combinat_intex)
-        if (inf >= hold(iel)) then
-            inf = hold(iel)
-        end if
+!         inf = philips_infiltration(mat_inf_index(i,j),combinat_intex)
+!         if (inf >= hold(iel)) then
+!             inf = hold(iel)
+!         end if
         
         ! oveland flow, calculatoin in iel
         if (hnew(iel) > 0.0_c_float) then
