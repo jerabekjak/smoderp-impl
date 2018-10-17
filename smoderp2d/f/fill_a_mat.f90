@@ -40,10 +40,12 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
         i = getIJ(iel,1)
         j = getIJ(iel,2)
         
+        ! caluca current infiltration
         inf = philips_infiltration(mat_inf_index(i,j),combinat_intex)
         if (inf >= hold(iel)) then
             inf = hold
         
+        ! oveland flow, calculatoin in iel
         if (hnew(iel) > 0.0_c_float) then
         
             hcrit = mat_hcrit(i,j)
@@ -66,6 +68,7 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
             idata = idata + 1
         end if    
         
+        ! oveland flow, calculatoin in adjecent cells 
         do inel = getElIN(iel,1), getElIN(iel,8)
             if (inel > 0) then
                 i = getIJ(inel,1)
