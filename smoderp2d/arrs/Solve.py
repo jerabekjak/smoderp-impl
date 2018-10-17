@@ -247,8 +247,6 @@ class ImplicitSolver:
                            c_float(gl.dx),
                            c_float(dt))
 
-        sys.exit()
-
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
@@ -259,54 +257,8 @@ class ImplicitSolver:
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
 
-            # overland outflow
-            if self.hnew[iel] > 0:
-                hcrit = gl.get_hcrit(i, j)
-                a = gl.get_aa(i, j)
-                b = gl.get_b(i, j)
-                hsheet = min(hcrit, self.hnew[iel])
-                hrill = max(0, self.hnew[iel] - hcrit)
-                sf = sheet_flowb_(a, b, hsheet)
-
-                rf = 0
-                if (hrill > 0):
-                    self.rill_count += 1
-                    rf = rill(
-                        i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[iel]
-
-                else:
-                    pass
-
-                data.append(
-                    (1. / dt + gl.dx * (sf) / gl.pixel_area) + rf / gl.pixel_area)
-            else:
-                data.append((1. / dt))
-
-            # TODO to by meli byt jiny acka a becka
-            # pokud to vteka z jineho lu nebo pudy
-            for inel in self.getElIN[iel]:
-                if inel >= 0:
-                    if self.hnew[inel] > 0:
-                        i = self.getIJ[inel][0]
-                        j = self.getIJ[inel][1]
-                        hcrit = gl.get_hcrit(i, j)
-                        a = gl.get_aa(i, j)
-                        b = gl.get_b(i, j)
-
-                        hsheet = min(hcrit, self.hnew[inel])
-                        hrill = max(0, self.hnew[inel] - hcrit)
-                        sf = sheet_flowb_(a, b, hsheet)
-                        rf = 0
-                        if (hrill > 0):
-                            rf = rill(
-                                i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[inel]
-
-                        data.append(-gl.dx * (sf) / gl.pixel_area -
-                                    rf / gl.pixel_area)
-                    else:
-                        data.append(0)
-
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
+
         t3 = time.time()
 
         self.A = csr_matrix((data, self.indices, self.indptr),

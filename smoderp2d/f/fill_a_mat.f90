@@ -14,18 +14,18 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
     integer(c_int), dimension(nEl+1,8), intent(in) :: getElIN
     real(c_float), dimension(1:sizes(1)), intent(out) :: data
     real(c_float), dimension(nEl), intent(in) :: hnew, hold
-    real(c_float), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_aa
-    real(c_float), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_b
-    real(c_float), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_hcrit
-    real(c_float), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_n
-    real(c_float), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_slope
-    real(c_float), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_eff_vrst
-    integer(c_int), dimension(1:sizes(2),1:sizes(3)), intent(in) :: mat_inf_index
+    real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_aa
+    real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_b
+    real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_hcrit
+    real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_n
+    real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_slope
+    real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_eff_vrst
+    integer(c_int), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_inf_index
     real(c_float), dimension(1:sizes(4),1:sizes(5)), intent(in) :: combinat_intex
     
     real(c_float), intent(in) :: dx, dt
 
-    integer :: iel, inel,  i, j, n
+    integer :: iel, inel, i, j, k, n
     integer :: idata
     real(c_float)    :: inf
     real ::  pixel_area
@@ -35,7 +35,7 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
     idata = 1
     data(idata) = 1.
     pixel_area = dx**2.
-    
+
     do iel = 1, nEl
         i = getIJ(iel,1)
         j = getIJ(iel,2)
@@ -43,24 +43,23 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
         ! caluca current infiltration
         inf = philips_infiltration(mat_inf_index(i,j),combinat_intex)
         if (inf >= hold(iel)) then
-            inf = hold
+            inf = hold(iel)
+        end if
         
         ! oveland flow, calculatoin in iel
         if (hnew(iel) > 0.0_c_float) then
-        
             hcrit = mat_hcrit(i,j)
             a     = mat_aa(i,j)
             b     = mat_b(i,j)
             hsheet = min(hcrit, hnew(iel))
             hrill  = max(0.0, hnew(iel) - hcrit)
-            
             sf = a*hsheet**b
             rf = 0.0_c_float
             if (hrill > 0.0_c_float) then
                 rf = rill_flow(hrill, mat_eff_vrst(i,j),dx**2., mat_n(i,j), mat_slope(i,j))
             end if 
             
-            data(idata) = 1. / dt + dx * (sf) / pixel_area + rf / pixel_area
+            data(idata) = 1. / dt + dx * sf / pixel_area + rf / pixel_area
             idata = idata + 1
             
         else
@@ -69,14 +68,34 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
         end if    
         
         ! oveland flow, calculatoin in adjecent cells 
-        do inel = getElIN(iel,1), getElIN(iel,8)
-            if (inel > 0) then
-                i = getIJ(inel,1)
-                j = getIJ(inel,2)
+        do k = 1, 8
+            inel = getElIN(iel,k)
+!             print '(i5)', inel
+            if (inel >= 0) then
+                if (hnew(iel) > 0.0_c_float) then
+                    i = getIJ(inel,1)
+                    j = getIJ(inel,2)
+
+                    hcrit = mat_hcrit(i,j)
+                    a     = mat_aa(i,j)
+                    b     = mat_b(i,j)
+                    hsheet = min(hcrit, hnew(inel))
+                    hrill  = max(0.0, hnew(inel) - hcrit)
+                    sf = a*hsheet**b
+                    rf = 0.0_c_float
+                    if (hrill > 0.0_c_float) then
+                        rf = rill_flow(hrill, mat_eff_vrst(i,j),dx**2., mat_n(i,j), mat_slope(i,j))
+                    end if
+                    data(idata) = -dx*sf/dx**2. - rf/dx**2.0
+                    idata = idata + 1
+                else 
+                    data(idata) = 0
+                    idata = idata + 1
+                end if
             end if
         end do
-
-end do
+    end do
+    
     
   
   
