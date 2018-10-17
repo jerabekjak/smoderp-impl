@@ -10,10 +10,10 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
     
     integer(c_int), intent(in) :: nEl
     integer(c_int), dimension(5), intent(in) :: sizes
-    integer(c_int), dimension(nEl+1,2), intent(in) :: getIJ
-    integer(c_int), dimension(nEl+1,8), intent(in) :: getElIN
+    integer(c_int), dimension(0:nEl,2), intent(in) :: getIJ
+    integer(c_int), dimension(0:nEl,8), intent(in) :: getElIN
     real(c_float), dimension(1:sizes(1)), intent(out) :: data
-    real(c_float), dimension(nEl), intent(in) :: hnew, hold
+    real(c_float), dimension(0:nEl), intent(in) :: hnew, hold
     real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_aa
     real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_b
     real(c_float), dimension(0:sizes(2)-1,0:sizes(3)-1), intent(in) :: mat_hcrit
@@ -32,21 +32,15 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
     
     real(c_float) :: sf, rf, a, b, hcrit, hrill, hsheet
     
+    data = 0.0_c_float
     idata = 1
     data(idata) = 1.
     pixel_area = dx**2.
-
-    do iel = 1, nEl
+    
+    do iel = 0, nEl
         i = getIJ(iel,1)
         j = getIJ(iel,2)
         
-        ! caluca current infiltration
-!         inf = philips_infiltration(mat_inf_index(i,j),combinat_intex)
-!         if (inf >= hold(iel)) then
-!             inf = hold(iel)
-!         end if
-        
-        ! oveland flow, calculatoin in iel
         if (hnew(iel) > 0.0_c_float) then
             hcrit = mat_hcrit(i,j)
             a     = mat_aa(i,j)
@@ -58,10 +52,8 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
             if (hrill > 0.0_c_float) then
                 rf = rill_flow(hrill, mat_eff_vrst(i,j),dx**2., mat_n(i,j), mat_slope(i,j))
             end if 
-            
             data(idata) = 1. / dt + dx * sf / pixel_area + rf / pixel_area
             idata = idata + 1
-            
         else
             data(idata) = 1. / dt
             idata = idata + 1
@@ -87,6 +79,7 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
                         rf = rill_flow(hrill, mat_eff_vrst(i,j),dx**2., mat_n(i,j), mat_slope(i,j))
                     end if
                     data(idata) = -dx*sf/dx**2. - rf/dx**2.0
+
                     idata = idata + 1
                 else 
                     data(idata) = 0
@@ -94,6 +87,7 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
                 end if
             end if
         end do
+!         read(*,*)
     end do
     
     

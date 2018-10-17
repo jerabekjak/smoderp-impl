@@ -19,6 +19,28 @@ import sys
 import time
 
 
+fortran = CDLL('smoderp2d/f/fill_a_mat.so')
+
+# TODO to oby se asi nemelo delat pokazde
+fortran.fill_a_mat.argtypes = [POINTER(c_int),    # nel
+                               POINTER(c_int),    # sizes
+                               POINTER(c_int),    # getIJ
+                               POINTER(c_int),    # getElIN
+                               POINTER(c_float),  # data
+                               POINTER(c_float),  # hnew
+                               POINTER(c_float),  # hold
+                               POINTER(c_float),  # mat_aa
+                               POINTER(c_float),  # mat_b
+                               POINTER(c_float),  # mat_hcrit
+                               POINTER(c_float),  # mat_effect_vrst
+                               POINTER(c_int),    # mat_inf_index
+                               POINTER(c_float),  # mat_n
+                               POINTER(c_float),  # mat_slope
+                               POINTER(c_float),  # combinatIndex
+                               POINTER(c_float),  # dx
+                               POINTER(c_float)]  # dt
+
+
 def init_getIJel():
     """Documentation for a function init_getIJel()
 
@@ -161,36 +183,6 @@ class ImplicitSolver:
                     self,
                     first=True
                 )
-                
-        gl.mat_inf_index = np.asarray(gl.mat_inf_index, dtype=c_int, order='F')
-        gl.mat_aa = np.asarray(gl.mat_aa, dtype=c_float, order='F')
-        gl.mat_b = np.asarray(gl.mat_b, dtype=c_float, order='F')
-        gl.mat_hcrit = np.asarray(gl.mat_hcrit, dtype=c_float, order='F')
-        gl.mat_n = np.asarray(gl.mat_n, dtype=c_float, order='F')
-        gl.mat_slope = np.asarray(gl.mat_slope, dtype=c_float, order='F')
-        gl.mat_efect_vrst = np.asarray(
-            gl.mat_efect_vrst, dtype=c_float, order='F')
-
-        self.fortran = CDLL('smoderp2d/f/fill_a_mat.so')
-
-        # TODO to oby se asi nemelo delat pokazde
-        self.fortran.fill_a_mat.argtypes = [POINTER(c_int),    # nel
-                                       POINTER(c_int),    # sizes
-                                       POINTER(c_int),    # getIJ
-                                       POINTER(c_int),    # getElIN
-                                       POINTER(c_float),  # data
-                                       POINTER(c_float),  # hnew
-                                       POINTER(c_float),  # hold
-                                       POINTER(c_float),  # mat_aa
-                                       POINTER(c_float),  # mat_b
-                                       POINTER(c_float),  # mat_hcrit
-                                       POINTER(c_float),  # mat_effect_vrst
-                                       POINTER(c_int),    # mat_inf_index
-                                       POINTER(c_float),  # mat_n
-                                       POINTER(c_float),  # mat_slope
-                                       POINTER(c_float),  # combinatIndex
-                                       POINTER(c_float),  # dx
-                                       POINTER(c_float)]  # dt
 
     def fillAmat(self, dt):
 
@@ -229,9 +221,19 @@ class ImplicitSolver:
         # do funkce to musi jit numpy array
         sizes = np.array(
             [n_data, n_mat, m_mat, n_combinatIndex, m_combinatIndex], dtype=c_int)
-     
 
-        self.fortran.fill_a_mat(c_int(self.nEl),
+        gl.mat_inf_index = np.asarray(gl.mat_inf_index, dtype=c_int, order='F')
+        gl.mat_aa = np.asarray(gl.mat_aa, dtype=c_float, order='F')
+        gl.mat_b = np.asarray(gl.mat_b, dtype=c_float, order='F')
+        gl.mat_hcrit = np.asarray(gl.mat_hcrit, dtype=c_float, order='F')
+        gl.mat_n = np.asarray(gl.mat_n, dtype=c_float, order='F')
+        gl.mat_slope = np.asarray(gl.mat_slope, dtype=c_float, order='F')
+        gl.mat_efect_vrst = np.asarray(
+            gl.mat_efect_vrst, dtype=c_float, order='F')
+        self.hnew = np.asarray(self.hnew, dtype=c_float, order='F')
+        self.hold = np.asarray(self.hold, dtype=c_float, order='F')
+
+        fortran.fill_a_mat(c_int(self.nEl),
                            sizes.ctypes.data_as(POINTER(c_int)),
                            self.getIJ.ctypes.data_as(POINTER(c_int)),
                            self.getElIN.ctypes.data_as(POINTER(c_int)),
@@ -273,19 +275,16 @@ class ImplicitSolver:
         hewp = self.hnew.copy()
 
         err = 1
-
         while (err > 0.000001):
-
             iter_crit.iter_up()
             self.fillAmat(iter_crit.dt)
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-
             if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
 
             err = np.sum(hewp - self.hnew)**2.0
-
+            
         # write hydrograph record
         for i in Globals.rr:
             for j in Globals.rc[i]:
