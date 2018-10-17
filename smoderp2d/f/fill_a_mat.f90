@@ -41,6 +41,8 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
         j = getIJ(iel,2)
         
         inf = philips_infiltration(mat_inf_index(i,j),combinat_intex)
+        if (inf >= hold(iel)) then
+            inf = hold
         
         if (hnew(iel) > 0.0_c_float) then
         
