@@ -1,11 +1,4 @@
-! gfortran -O3 -funroll-loops -ffast-math -floop-strip-mine -shared -fPIC -o fill_a_mat.so fill_a_mat.f90
-
-
-
-
-
-
-
+# USAGE: ! gfortran -O3 -funroll-loops -ffast-math -floop-strip-mine -shared -fPIC -o fill_a_mat.so fill_a_mat.f90
 
 subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
                       mat_aa, mat_b, mat_hcrit, mat_eff_vrst, mat_inf_index, &
@@ -31,7 +24,6 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
     real(c_float), dimension(1:sizes(4),1:sizes(5)), intent(in) :: combinat_intex
     
     real(c_float), intent(in) :: dx, dt
-    
 
     integer :: iel, inel,  i, j, n
     integer :: idata
@@ -45,8 +37,6 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
     pixel_area = dx**2.
     
     do iel = 1, nEl
-        print *, getElIN(iel,:)
-!         print *, iel
         i = getIJ(iel,1)
         j = getIJ(iel,2)
         
@@ -75,21 +65,13 @@ subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
         end if    
         
         do inel = getElIN(iel,1), getElIN(iel,8)
-            print *, inel
             if (inel > 0) then
                 i = getIJ(inel,1)
                 j = getIJ(inel,2)
-                
-                
-                
             end if
-        
         end do
-        
-        
-        
-        
-    end do
+
+end do
     
   
   

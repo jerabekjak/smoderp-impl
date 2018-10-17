@@ -44,10 +44,11 @@ def init_getIJel():
     bc = gl.get_bor_cols()
 
     getEl = np.zeros([r, c], int)
-    getIJ = [] 
+    getIJ = []
     getElIN = []
 
     nEl = int(-1)
+
     # prvni cyklus priradi
     # k i j bunky jeji poradi ve vektoru
     # a k elementu vektoru i j bunky
@@ -93,27 +94,28 @@ def init_getIJel():
 
             getElIN.append(tmp)
 
-    # toto je pokazde stejne
+    # toto je pokazde stejne pro kinematickou vlnu
     indptr = [0]
-    # toto je pokazde stejne
+    # toto je pokazde stejne pro kinematickou vlnu
     indices = []
 
     for iel in range(nEl):
         indices.append(iel)
         for inel in getElIN[iel]:
-            if inel >= 0 :  indices.append(inel)
+            if inel >= 0:
+                indices.append(inel)
         indptr.append(len(indices))
-    
+
     # convert co ctype F ordered array
     getIJ = np.array(getIJ, dtype=c_int, order='F')
     getElIN = np.array(getElIN, dtype=c_int, order='F')
-    
+
     return nEl, getEl, getElIN, getIJ, indices, indptr
 
 
 class ImplicitSolver:
 
-    def __init__(self,iter_crit):
+    def __init__(self, iter_crit):
 
         gl = Globals()
         r = gl.get_rows()
@@ -126,13 +128,10 @@ class ImplicitSolver:
 
         self.nEl, self.getEl, self.getElIN, self.getIJ, self.indices, self.indptr = init_getIJel()
 
-            
-            
-            
         #self.A = np.zeros([self.nEl, self.nEl], float)
-        self.b = np.zeros([self.nEl], dtype = c_float)
-        self.hnew = np.ones([self.nEl], dtype = c_float)
-        self.hold = np.zeros([self.nEl], dtype = c_float)
+        self.b = np.zeros([self.nEl], dtype=c_float)
+        self.hnew = np.ones([self.nEl], dtype=c_float)
+        self.hold = np.zeros([self.nEl], dtype=c_float)
 
         # variable counts rills
         self.rill_count = 0
@@ -164,20 +163,20 @@ class ImplicitSolver:
                 )
 
     def fillAmat(self, dt):
-        
+
         gl = Globals()
         from smoderp2d.processes.surface import sheet_flowb_
-        # if rills are calculated 
+        # if rills are calculated
         if gl.isRill:
             from smoderp2d.processes.rill import rill
         else:
             from smoderp2d.processes.rill import rill_pass
             rill = rill_pass
-        
+
         # potential precipitation
         PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
 
-        # prepares infiltration table 
+        # prepares infiltration table
         for iii in gl.get_combinatIndex():
             index = iii[0]
             k = iii[1]
@@ -187,32 +186,31 @@ class ImplicitSolver:
 
         # creates empty list for data
         data = np.ones((len(self.indices)), dtype=c_float)
-        
+
         n_data = len(data)
-        n_mat  = gl.r
-        m_mat  = gl.c
+        n_mat = gl.r
+        m_mat = gl.c
         n_combinatIndex = len(gl.combinatIndex)
         m_combinatIndex = len(gl.combinatIndex[0])
-        
-        
-        
-        
+
         # combinatIndex must be numpy array
         combinatIndex = np.array(gl.combinatIndex, dtype=c_float, order='F')
-        
+
         # do funkce to musi jit numpy array
-        sizes = np.array([n_data,n_mat,m_mat,n_combinatIndex,m_combinatIndex], dtype=c_int)
+        sizes = np.array(
+            [n_data, n_mat, m_mat, n_combinatIndex, m_combinatIndex], dtype=c_int)
         gl.mat_inf_index = np.asarray(gl.mat_inf_index, dtype=c_int, order='F')
         gl.mat_aa = np.asarray(gl.mat_aa, dtype=c_float, order='F')
         gl.mat_b = np.asarray(gl.mat_b, dtype=c_float, order='F')
         gl.mat_hcrit = np.asarray(gl.mat_hcrit, dtype=c_float, order='F')
         gl.mat_n = np.asarray(gl.mat_n, dtype=c_float, order='F')
         gl.mat_slope = np.asarray(gl.mat_slope, dtype=c_float, order='F')
-        gl.mat_efect_vrst = np.asarray(gl.mat_efect_vrst, dtype=c_float, order='F')
-        
+        gl.mat_efect_vrst = np.asarray(
+            gl.mat_efect_vrst, dtype=c_float, order='F')
 
-        
         fortran = CDLL('smoderp2d/f/fill_a_mat.so')
+
+        # TODO to oby se asi nemelo delat pokazde
         fortran.fill_a_mat.argtypes = [POINTER(c_int),    # nel
                                        POINTER(c_int),    # sizes
                                        POINTER(c_int),    # getIJ
@@ -231,16 +229,6 @@ class ImplicitSolver:
                                        POINTER(c_float),  # dx
                                        POINTER(c_float)]  # dt
 
-                                       #POINTER(c_float),
-                                       #POINTER(c_int),
-                                       #POINTER(c_int) ]
-        
-        #fortran.fill_a_mat.restypes = [ POINTER(c_float), 
-                                       #POINTER(c_float), 
-                                       #POINTER(c_float),
-                                       #POINTER(c_int),
-                                        #POINTER(c_int) ]
-        
         fortran.fill_a_mat(c_int(self.nEl),
                            sizes.ctypes.data_as(POINTER(c_int)),
                            self.getIJ.ctypes.data_as(POINTER(c_int)),
@@ -258,27 +246,24 @@ class ImplicitSolver:
                            combinatIndex.ctypes.data_as(POINTER(c_float)),
                            c_float(gl.dx),
                            c_float(dt))
-        
-        
 
-        #sys.exit()
-        
+        sys.exit()
+
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
 
             # infiltration
-            
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
-            
+
             # overland outflow
             if self.hnew[iel] > 0:
                 hcrit = gl.get_hcrit(i, j)
                 a = gl.get_aa(i, j)
-                b = gl.get_b(i, j)  
+                b = gl.get_b(i, j)
                 hsheet = min(hcrit, self.hnew[iel])
                 hrill = max(0, self.hnew[iel] - hcrit)
                 sf = sheet_flowb_(a, b, hsheet)
@@ -288,32 +273,23 @@ class ImplicitSolver:
                     self.rill_count += 1
                     rf = rill(
                         i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[iel]
-                    # if (iel == 41):
-                    #print self.hnew[iel], hsheet, hrill, sf, rf
 
                 else:
                     pass
-                    # if (iel == 41):
-                    #print self.hnew[iel], hsheet, hrill, sf, rf
-
-                # if (iel==50) :
-                    #print iel, hsheet, hrill, sf, rf
 
                 data.append(
                     (1. / dt + gl.dx * (sf) / gl.pixel_area) + rf / gl.pixel_area)
             else:
                 data.append((1. / dt))
-            #print max(gl.dx * (sf) / gl.pixel_area*dt/gl.dx, rf/ gl.pixel_area * dt / gl.dx)
+
             # TODO to by meli byt jiny acka a becka
             # pokud to vteka z jineho lu nebo pudy
             for inel in self.getElIN[iel]:
-                if inel >= 0: 
+                if inel >= 0:
                     if self.hnew[inel] > 0:
                         i = self.getIJ[inel][0]
                         j = self.getIJ[inel][1]
                         hcrit = gl.get_hcrit(i, j)
-                        #Logger.debug('hcrit natvrdo')
-                        #hcrit = 0.01
                         a = gl.get_aa(i, j)
                         b = gl.get_b(i, j)
 
@@ -332,34 +308,30 @@ class ImplicitSolver:
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
         t3 = time.time()
-        
-        print len(data)
-        print len(self.indices)
+
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
         t4 = time.time()
-        
-        
+
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
 
         hewp = self.hnew.copy()
-        
+
         err = 1
 
         while (err > 0.000001):
-            
+
             iter_crit.iter_up()
             self.fillAmat(iter_crit.dt)
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-            
-            
-            if (iter_crit.crit_iter_check(self.total_time)) : 
+
+            if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
-                 
+
             err = np.sum(hewp - self.hnew)**2.0
-            
+
         # write hydrograph record
         for i in Globals.rr:
             for j in Globals.rc[i]:
@@ -370,5 +342,4 @@ class ImplicitSolver:
                     self
                 )
 
-        #make_sur_raster(self, 'out', self.total_time)
         return 1
