@@ -1,4 +1,4 @@
-# USAGE: ! gfortran -O3 -funroll-loops -ffast-math -floop-strip-mine -shared -fPIC -o fill_a_mat.so fill_a_mat.f90
+! USAGE: ! gfortran -O3 -funroll-loops -ffast-math -floop-strip-mine -shared -fPIC -o fill_a_mat.so fill_a_mat.f90
 
 subroutine fill_a_mat(nEl, sizes, getIJ, getElIN, data, hnew, hold, &
                       mat_aa, mat_b, mat_hcrit, mat_eff_vrst, mat_inf_index, &

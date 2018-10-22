@@ -217,7 +217,6 @@ class ImplicitSolver:
 
         # combinatIndex must be numpy array
         combinatIndex = np.array(gl.combinatIndex, dtype=c_float, order='F')
-
         # do funkce to musi jit numpy array
         sizes = np.array(
             [n_data, n_mat, m_mat, n_combinatIndex, m_combinatIndex], dtype=c_int)
@@ -262,7 +261,8 @@ class ImplicitSolver:
                 inf = self.hold[iel]
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
-
+        
+        
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
 
