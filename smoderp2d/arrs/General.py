@@ -89,6 +89,8 @@ class Globals:
     mat_a = None
     # raster contains parameters ...
     mat_n = None
+    # rill width
+    mat_rill_width = None
     # ???
     points = None
     # ???
@@ -229,7 +231,13 @@ class Globals:
 
     def get_n(self, i, j):
         return self.mat_n[i][j]
-
+    
+    def get_mat_rill_width(self, i, j):
+        return self.mat_rill_width[i][j]
+    
+    def set_mat_rill_width(self, i, j, rill_width):
+        self.mat_rill_width[i][j] = 
+    
     def get_points(self):
         return self.points
 
