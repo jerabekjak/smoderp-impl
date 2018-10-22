@@ -158,6 +158,8 @@ class BaseProvider(object):
         Globals.dx = math.sqrt(data['pixel_area'])
         Globals.dy = Globals.dx
         Globals.mat_reten = -1.0 * data['mat_reten'] / 1000
+        Globals.mat_rill_width = data['mat_reten'].copy()
+        Globals.mat_rill_width.fill(0.0)
         Globals.diffuse = self._comp_type(data['type_of_computing'])['diffuse']
         Globals.subflow = self._comp_type(data['type_of_computing'])['subflow']
         # TODO: lines below are part only of linux method

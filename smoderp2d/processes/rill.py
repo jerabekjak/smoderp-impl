@@ -29,10 +29,10 @@ def update_hb(i,j,V_to_rill, b):
     return h, b
 
 # TODO zkontrolovat V_RILL_REST jestli je treba
-def rill(i,j,hrill,dt,sur):
+def rill(i,j,hrill,dt):
     
     gl = Globals()
-    b = sur.width_rill
+    b = gl.get_rill_width(i,j)
     V_to_rill = hrill*gl.pixel_area
     n = gl.get_n(i,j)
     slope = gl.get_slope(i,j)
@@ -43,7 +43,9 @@ def rill(i,j,hrill,dt,sur):
     hloc, b = update_hb(i,j,V_to_rill, b)
     R_rill = (hloc*b)/(b + 2*hloc)
     v = math.pow(R_rill, (2.0/3.0)) * 1/n * math.pow(slope/100, 0.5)  # m/s
-    #raw_input()
+    
+    
+    gl.set_rill_width(i,j,b)
     return hloc*b*v
     
 def rill_pass(i,j,hrill,dt,sur):

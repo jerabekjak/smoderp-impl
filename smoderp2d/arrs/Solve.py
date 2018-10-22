@@ -219,7 +219,7 @@ class ImplicitSolver:
                     self.rill_count += 1
                     t1 = time.time()
                     rf = rill(
-                        i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[iel]
+                        i, j, hrill, dt) / self.hnew[iel]
                     t2 = time.time()
                     trf += (t2-t1)
                     # if (iel == 41):
@@ -260,7 +260,7 @@ class ImplicitSolver:
                     if (hrill > 0):
                         t1 = time.time()
                         rf = rill(
-                            i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[iel]
+                            i, j, hrill, dt) / self.hnew[iel]
                         t2 = time.time()
                         trf += (t2-t1)
 
