@@ -1,7 +1,6 @@
 from smoderp2d.arrs.General import Globals
 from smoderp2d.tools.tools import make_ASC_raster
 from smoderp2d.tools.tools import make_sur_raster
-from smoderp2d.arrs.Surface import Surface
 import smoderp2d.processes.rainfall as rain_f
 import smoderp2d.processes.infiltration as infilt
 import smoderp2d.flow_algorithm.D8 as D8_
@@ -132,8 +131,6 @@ class ImplicitSolver:
 
         # variable counts rills
         self.rill_count = 0
-
-        self.sur = Surface()
 
         # opens files for storing hydrographs
         if gl.points and gl.points != "#":
