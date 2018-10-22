@@ -186,8 +186,9 @@ class ImplicitSolver:
         data = []
         self.rill_count = 0
         
-        t2 = time.time()
-        
+        tsf = 0
+        trf = 0
+        tb  = 0
         
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
@@ -207,13 +208,20 @@ class ImplicitSolver:
                 b = gl.get_b(i, j)  
                 hsheet = min(hcrit, self.hnew[iel])
                 hrill = max(0, self.hnew[iel] - hcrit)
+                
+                t1 = time.time()
                 sf = sheet_flowb_(a, b, hsheet)
-
+                t2 = time.time()
+                tsf += (t2-t1)
+                
                 rf = 0
                 if (hrill > 0):
                     self.rill_count += 1
+                    t1 = time.time()
                     rf = rill(
                         i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[iel]
+                    t2 = time.time()
+                    trf += (t2-t1)
                     # if (iel == 41):
                     #print self.hnew[iel], hsheet, hrill, sf, rf
 
@@ -244,24 +252,34 @@ class ImplicitSolver:
 
                     hsheet = min(hcrit, self.hnew[inel])
                     hrill = max(0, self.hnew[inel] - hcrit)
+                    t1 = time.time()
                     sf = sheet_flowb_(a, b, hsheet)
+                    t2 = time.time()
+                    tsf += (t2-t1)
                     rf = 0
                     if (hrill > 0):
+                        t1 = time.time()
                         rf = rill(
-                            i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[inel]
+                            i, j, hrill, dt, self.sur.arr[i][j]) / self.hnew[iel]
+                        t2 = time.time()
+                        trf += (t2-t1)
 
                     data.append(-gl.dx * (sf) / gl.pixel_area -
                                 rf / gl.pixel_area)
                 else:
                     data.append(0)
-
+                    
+            t1 = time.time()
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
-        #t3 = time.time()
+            t2 = time.time()
+            tb += (t2-t1)
+            
+        #print tsf, ';',
+        #print trf, ';',
+        #print tb, ';',
         
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
-        #t4 = time.time()
-        
         
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
@@ -269,7 +287,8 @@ class ImplicitSolver:
         hewp = self.hnew.copy()
         
         err = 1
-
+        
+        
         while (err > 0.000001):
             
             iter_crit.iter_up()
@@ -279,8 +298,8 @@ class ImplicitSolver:
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             t3 = time.time()
-            print 'fill mat    : ', t2 - t1
-            print 'solve system: ', t3 - t2
+            #print t2 - t1,  ';',
+            #print t3 - t2
             #Logger.debug(hewp)
             #Logger.debug(abs(np.sum((hewp - self.hnew))))
             #Logger.debug((hewp - self.hnew))

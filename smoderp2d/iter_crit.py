@@ -17,7 +17,7 @@ class IterCrit():
     #
     def __init__(self):
         self.iter_ = 0
-        self.crit_iter_ = 10
+        self.crit_iter_ = 7
         self.max_delta_t = Gl.maxdt
         self.min_delta_t = 0.1
         self.max_iter = 7
