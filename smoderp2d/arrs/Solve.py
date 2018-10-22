@@ -279,6 +279,8 @@ class ImplicitSolver:
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             t3 = time.time()
+            print 'fill mat    : ', t2 - t1
+            print 'solve system: ', t3 - t2
             #Logger.debug(hewp)
             #Logger.debug(abs(np.sum((hewp - self.hnew))))
             #Logger.debug((hewp - self.hnew))
