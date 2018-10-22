@@ -263,11 +263,8 @@ class ImplicitSolver:
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
 
-        t3 = time.time()
-
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
-        t4 = time.time()
 
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
@@ -277,9 +274,14 @@ class ImplicitSolver:
         err = 1
         while (err > 0.000001):
             iter_crit.iter_up()
+            t1 = time.time()
             self.fillAmat(iter_crit.dt)
+            t2 = time.time()
             hewp = self.hnew.copy()
+            t3 = time.time()
             self.hnew = spsolve(self.A, self.b)
+            print 'fill mat    : ', t2 - t1
+            print 'solve system: ', t3 - t2
             if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
 
