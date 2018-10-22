@@ -256,11 +256,11 @@ class ImplicitSolver:
                     data.append(0)
 
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
-        t3 = time.time()
+        #t3 = time.time()
         
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
-        t4 = time.time()
+        #t4 = time.time()
         
         
     def solveStep(self, iter_crit):
@@ -273,10 +273,12 @@ class ImplicitSolver:
         while (err > 0.000001):
             
             iter_crit.iter_up()
+            t1 = time.time()
             self.fillAmat(iter_crit.dt)
+            t2 = time.time()
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-            
+            t3 = time.time()
             #Logger.debug(hewp)
             #Logger.debug(abs(np.sum((hewp - self.hnew))))
             #Logger.debug((hewp - self.hnew))
