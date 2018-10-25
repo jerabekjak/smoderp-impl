@@ -39,11 +39,6 @@ def new_inflows(mat_fd):
             intok = __smery(in_dir, i, j, smer)
             inflows[i][j] = intok
 
-    # for item in inflows :
-        #print item
-        # for item2 in item :
-            #print item2
-    # raw_input()
     return inflows
 
 
@@ -53,11 +48,11 @@ def __smeryInflow(mat_fd, i, j):
     pritok = 0
     pocet = len(coco)
     for k in range(pocet):
-        a = i+coco[k][0]
-        b = j+coco[k][1]
+        a = i + coco[k][0]
+        b = j + coco[k][1]
         try:
             value = mat_fd[a][b]
-        except:
+        except BaseException:
             value = -1
         if value == coco[k][2]:
             pritok = pritok + value
@@ -72,8 +67,8 @@ def __smery(inflow, i, j, smer):
         if inflow >= z:
             cellin.append(co[y])
             inflow = inflow - smer[y]
-            y = y+1
+            y = y + 1
         else:
-            y = y+1
+            y = y + 1
     y = 0
     return cellin
