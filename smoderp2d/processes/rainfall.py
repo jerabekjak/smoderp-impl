@@ -45,8 +45,8 @@ def load_precipitation(fh):
                 if len(z) == 0:
                     continue
                 else:
-                    y0 = float(z[0])*60.0  # prevod na vteriny
-                    y1 = float(z[1])/1000.0  # prevod na metry
+                    y0 = float(z[0]) * 60.0  # prevod na vteriny
+                    y1 = float(z[1]) / 1000.0  # prevod na metry
                     if y1 < y2:
                         raise NonCumulativeRainData()
                     y2 = y1
@@ -63,7 +63,7 @@ def load_precipitation(fh):
         k = 1
         itera = len(x)  # iter is needed in main loop
         for k in range(itera):
-            if x[k][0] == x[k-1][0] and itera != 1:
+            if x[k][0] == x[k - 1][0] and itera != 1:
                 state = 1
                 y = np.delete(x, k, 0)
 
@@ -83,28 +83,23 @@ def load_precipitation(fh):
                     sr[i][1] = sr_int
 
                 else:
-                    sr_int = (x[i][1] - x[i-1][1]) / (x[i][0] - x[i-1][0])
+                    sr_int = (x[i][1] - x[i - 1][1]) / (x[i][0] - x[i - 1][0])
                     sr[i][0] = x[i][0]
                     sr[i][1] = sr_int
-
-        # for  i, item in enumerate(sr):
-            #print item[0], '\t', item[1]
 
         return sr, itera
 
     except IOError:
         prt.message("The file does not exist!")
-    except:
+    except BaseException:
         prt.message("Unexpected error:", sys.exc_info()[0])
         raise
 
 
-
- 
 class Rainfall():
-    
+
     def __init__(self):
-        
+
         self.tz = 0
         self.veg = Globals.get_mat_nan().copy()
         self.veg.fill(int(1))
@@ -112,13 +107,10 @@ class Rainfall():
         self.sum_interception = Globals.get_mat_nan().copy()
         self.sum_interception.fill(int(1))
 
-
-
-
     # Function returns a rainfall amount for current time step
     #  if two or more rainfall records belongs to one time step
     #  the function integrates the rainfall amount.
-    def timestepRainfall(self,total_time, delta_t):
+    def timestepRainfall(self, total_time, delta_t):
         gl = Globals()
 
         iterace = gl.itera
@@ -129,14 +121,16 @@ class Rainfall():
         if z > (iterace - 1):
             rainfall = 0
         else:
-            # skontroluje jestli casovy krok, ktery prave resi, je stale vramci srazkoveho zaznamu z
+            # skontroluje jestli casovy krok, ktery prave resi, je stale vramci
+            # srazkoveho zaznamu z
 
             if sr[z][0] >= (total_time + delta_t):
                 rainfall = sr[z][1] * delta_t
             # kdyz je mimo tak
             else:
-                # dopocita zbytek ze zaznamu z, ktery je mezi total_time a total_time + delta_t
-                rainfall = sr[z][1] * (sr[z][0]-total_time)
+                # dopocita zbytek ze zaznamu z, ktery je mezi total_time a
+                # total_time + delta_t
+                rainfall = sr[z][1] * (sr[z][0] - total_time)
                 # skoci do dalsiho zaznamu
                 z += 1
                 # koukne jestli ten uz neni mimo
@@ -146,7 +140,7 @@ class Rainfall():
                     # pokud je total_time + delta_t stale dal nez konec posunuteho zaznamu
                     # vezme celou delku zaznamu a tuto srazku pricte
                     while (sr[z][0] <= (total_time + delta_t)):
-                        rainfall += sr[z][1] * (sr[z][0]-sr[z-1][0])
+                        rainfall += sr[z][1] * (sr[z][0] - sr[z - 1][0])
                         z += 1
                         if z > (iterace - 1):
                             break
@@ -155,20 +149,16 @@ class Rainfall():
                     if z > (iterace - 1):
                         rainfall += 0
                     else:
-                        rainfall += sr[z][1] * (total_time+delta_t-sr[z-1][0])
+                        rainfall += sr[z][1] * \
+                            (total_time + delta_t - sr[z - 1][0])
 
                 self.tz = z
 
         return rainfall
 
-
-
-
-            
-    def current_rain(self,i, j, potential_rain):
-        # jj
-        ppl = Globals.get_ppl(i,j)
-        pi = Globals.get_pi(i,j)
+    def current_rain(self, i, j, potential_rain):
+        ppl = Globals.get_ppl(i, j)
+        pi = Globals.get_pi(i, j)
         if self.veg[i][j] != int(5):
             interc = ppl * potential_rain  # interception is konstant
             # jj nemelo by to byt interc = (1-rain_ppl) * rainfallm
@@ -179,11 +169,11 @@ class Rainfall():
             # jj nemela by byt srazka 0 dokun neni naplnena intercepcni zona?
             #
 
-            # if potentional interception is overthrown by intercepcion sum, then the rainfall is effetive
+            # if potentional interception is overthrown by intercepcion sum,
+            # then the rainfall is effetive
             if self.sum_interception[i][j] >= pi:
                 self.veg[i][j] = int(5)
         else:
             NS = potential_rain
 
         return NS
-

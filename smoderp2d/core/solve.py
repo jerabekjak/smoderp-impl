@@ -279,21 +279,15 @@ class ImplicitSolver:
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             t3 = time.time()
-            #print t2 - t1,  ';',
-            #print t3 - t2
-            # Logger.debug(hewp)
-            #Logger.debug(abs(np.sum((hewp - self.hnew))))
-            #Logger.debug((hewp - self.hnew))
-            # Logger.debug(err)
+            
+            
+            
 
             if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
 
-            #err = abs(np.sum((hewp - self.hnew)))
             err = np.sum(hewp - self.hnew)**2.0
 
-        # Logger.debug(iter_crit.crit_iter_check(self.total_time))
-        # raw_input()
 
         # write hydrograph record
         for i in Globals.rr:
