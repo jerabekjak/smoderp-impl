@@ -21,6 +21,7 @@ import os
 import sys
 
 from smoderp2d.core.general import Globals
+from smoderp2d.providers.logger import Logger
 
 
 class Runoff():
@@ -54,15 +55,21 @@ class Runoff():
                 self.LS.hold = self.LS.hnew.copy()
             ok = self.LS.solveStep(self.iter_crit)
             if ok == 0:
-                self.provider.progress(
+                timeperc = 100 * (self.LS.total_time + self.iter_crit.dt) / Globals.end_time
+                Logger.progress(
+                    timeperc,
                     self.iter_crit.dt,
                     self.iter_crit.iter_,
                     self.LS.total_time)
                 self.iter_crit.check_time_step02()
-                self.provider.message('repeating time step')
-                self.provider.message("-" * 40)
+                Logger.warning("-" * 37)
+                Logger.warning('repeating time step')
+                Logger.warning("-" * 37)
+                
             if ok == 1:
-                self.provider.progress(
+                timeperc = 100 * (self.LS.total_time + self.iter_crit.dt) / Globals.end_time
+                Logger.progress(
+                    timeperc,
                     self.iter_crit.dt,
                     self.iter_crit.iter_,
                     self.LS.total_time)

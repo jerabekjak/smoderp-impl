@@ -279,9 +279,6 @@ class ImplicitSolver:
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
             t3 = time.time()
-            
-            
-            
 
             if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
