@@ -186,12 +186,14 @@ class Globals:
 
     def get_delta_t(self):
         return self.delta_t
-
-    def get_mat_pi(self):
-        return self.mat_pi
-
-    def get_mat_ppl(self):
-        return self.mat_ppl
+    
+    @classmethod
+    def get_pi(cls,i,j):
+        return cls.mat_pi[i][j]
+    
+    @classmethod
+    def get_ppl(cls,i,j):
+        return cls.mat_ppl[i][j]
 
     def get_surface_retention(self):
         return self.surface_retention
@@ -222,9 +224,10 @@ class Globals:
 
     def get_slope(self, i, j):
         return self.mat_slope[i][j]
-
-    def get_mat_nan(self):
-        return self.mat_nan
+    
+    @classmethod
+    def get_mat_nan(cls):
+        return cls.mat_nan
 
     def get_mat_a(self):
         return self.mat_a

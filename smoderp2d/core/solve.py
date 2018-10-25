@@ -111,8 +111,6 @@ class ImplicitSolver:
         r = gl.get_rows()
         c = gl.get_cols()
 
-        # interval srazky
-        self.tz = 0
         # aktualni cas programu
         self.total_time = 0
 
@@ -135,7 +133,11 @@ class ImplicitSolver:
         else:
             from smoderp2d.processes.rill import rill_pass
             self.rill_flow = rill_pass
-
+        
+        from smoderp2d.processes.rainfall import Rainfall
+        self.rainfall = Rainfall()
+        
+        
         # opens files for storing hydrographs
         if gl.points and gl.points != "#":
             self.hydrographs = wf.Hydrographs()
@@ -165,7 +167,7 @@ class ImplicitSolver:
         gl = Globals()
 
         # potential precipitation
-        PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
+        PS = self.rainfall.timestepRainfall(self.total_time, dt)
 
         # prepares infiltration table
         for iii in gl.get_combinatIndex():
@@ -187,11 +189,6 @@ class ImplicitSolver:
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
 
-            # infiltration
-            inf = infilt.philip_infiltration(
-                gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
-            if inf >= self.hold[iel]:
-                inf = self.hold[iel]
 
             # overland outflow
             if self.hnew[iel] > 0:
@@ -250,10 +247,18 @@ class ImplicitSolver:
                 else:
                     data.append(0)
 
-            t1 = time.time()
+
+
+            # infiltration
+            inf = infilt.philip_infiltration(
+                gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
+            if inf >= self.hold[iel]:
+                inf = self.hold[iel]
+                
+            # effective precipitation
+            ES = self.rainfall.current_rain(i,j,PS)
+                
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
-            t2 = time.time()
-            tb += (t2 - t1)
 
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)

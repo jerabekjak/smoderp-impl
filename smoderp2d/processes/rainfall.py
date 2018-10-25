@@ -99,72 +99,115 @@ def load_precipitation(fh):
         raise
 
 
-# Function returns a rainfall amount for current time step
-#  if two or more rainfall records belongs to one time step
-#  the function integrates the rainfall amount.
-def timestepRainfall(total_time, delta_t, tz):
-    gl = Globals()
 
-    iterace = gl.itera
-    sr = gl.sr
+ 
+class Rainfall():
+    
+    def __init__(self):
+        
+        self.tz = 0
+        self.veg = Globals.get_mat_nan().copy()
+        self.veg.fill(int(1))
+        self.tz = 0
+        self.sum_interception = Globals.get_mat_nan().copy()
+        self.sum_interception.fill(int(1))
 
-    z = tz
-    # skontroluje jestli neni mimo srazkovy zaznam
-    if z > (iterace - 1):
-        rainfall = 0
-    else:
-        # skontroluje jestli casovy krok, ktery prave resi, je stale vramci srazkoveho zaznamu z
 
-        if sr[z][0] >= (total_time + delta_t):
-            rainfall = sr[z][1] * delta_t
-        # kdyz je mimo tak
+
+
+    # Function returns a rainfall amount for current time step
+    #  if two or more rainfall records belongs to one time step
+    #  the function integrates the rainfall amount.
+    def timestepRainfall(self,total_time, delta_t):
+        gl = Globals()
+
+        iterace = gl.itera
+        sr = gl.sr
+
+        z = self.tz
+        # skontroluje jestli neni mimo srazkovy zaznam
+        if z > (iterace - 1):
+            rainfall = 0
         else:
-            # dopocita zbytek ze zaznamu z, ktery je mezi total_time a total_time + delta_t
-            rainfall = sr[z][1] * (sr[z][0]-total_time)
-            # skoci do dalsiho zaznamu
-            z += 1
-            # koukne jestli ten uz neni mimo
-            if z > (iterace - 1):
-                rainfall += 0
+            # skontroluje jestli casovy krok, ktery prave resi, je stale vramci srazkoveho zaznamu z
+
+            if sr[z][0] >= (total_time + delta_t):
+                rainfall = sr[z][1] * delta_t
+            # kdyz je mimo tak
             else:
-                # pokud je total_time + delta_t stale dal nez konec posunuteho zaznamu
-                # vezme celou delku zaznamu a tuto srazku pricte
-                while (sr[z][0] <= (total_time + delta_t)):
-                    rainfall += sr[z][1] * (sr[z][0]-sr[z-1][0])
-                    z += 1
-                    if z > (iterace - 1):
-                        break
-                # nakonec pricte to co je v poslednim zaznamu kde je total_time + delta_t pred konce zaznamu
-                # nebo pricte nulu pokud uz tam zadny zaznam neni
+                # dopocita zbytek ze zaznamu z, ktery je mezi total_time a total_time + delta_t
+                rainfall = sr[z][1] * (sr[z][0]-total_time)
+                # skoci do dalsiho zaznamu
+                z += 1
+                # koukne jestli ten uz neni mimo
                 if z > (iterace - 1):
                     rainfall += 0
                 else:
-                    rainfall += sr[z][1] * (total_time+delta_t-sr[z-1][0])
+                    # pokud je total_time + delta_t stale dal nez konec posunuteho zaznamu
+                    # vezme celou delku zaznamu a tuto srazku pricte
+                    while (sr[z][0] <= (total_time + delta_t)):
+                        rainfall += sr[z][1] * (sr[z][0]-sr[z-1][0])
+                        z += 1
+                        if z > (iterace - 1):
+                            break
+                    # nakonec pricte to co je v poslednim zaznamu kde je total_time + delta_t pred konce zaznamu
+                    # nebo pricte nulu pokud uz tam zadny zaznam neni
+                    if z > (iterace - 1):
+                        rainfall += 0
+                    else:
+                        rainfall += sr[z][1] * (total_time+delta_t-sr[z-1][0])
 
-            tz = z
+                self.tz = z
 
-    return rainfall, tz
+        return rainfall
 
 
-def current_rain(rain, rainfallm, sum_interception):
-    # jj
-    rain_veg = rain.veg_true
-    rain_ppl = rain.ppl
-    rain_pi = rain.pi
-    if rain_veg != int(5):
-        interc = rain_ppl * rainfallm  # interception is konstant
-        # jj nemelo by to byt interc = (1-rain_ppl) * rainfallm
-        #                             -------------
 
-        sum_interception += interc  # sum of intercepcion
-        NS = rainfallm - interc  # netto rainfallm
-        # jj nemela by byt srazka 0 dokun neni naplnena intercepcni zona?
-        #
 
-        # if potentional interception is overthrown by intercepcion sum, then the rainfall is effetive
-        if sum_interception >= rain_pi:
-            rain_veg = int(5)
-    else:
-        NS = rainfallm
+            
+    def current_rain(self,i, j, potential_rain):
+        # jj
+        ppl = Globals.get_ppl(i,j)
+        pi = Globals.get_pi(i,j)
+        if self.veg[i][j] != int(5):
+            interc = ppl * potential_rain  # interception is konstant
+            # jj nemelo by to byt interc = (1-rain_ppl) * rainfallm
+            #                             -------------
 
-    return NS, sum_interception, rain_veg
+            self.sum_interception[i][j] += interc  # sum of intercepcion
+            NS = potential_rain - interc  # netto rainfallm
+            # jj nemela by byt srazka 0 dokun neni naplnena intercepcni zona?
+            #
+
+            # if potentional interception is overthrown by intercepcion sum, then the rainfall is effetive
+            if self.sum_interception[i][j] >= pi:
+                self.veg[i][j] = int(5)
+        else:
+            NS = potential_rain
+
+        return NS
+
+
+
+    def current_rain_old(rain, rainfallm, sum_interception):
+        # jj
+        rain_veg = rain.veg_true
+        rain_ppl = rain.ppl
+        rain_pi = rain.pi
+        if rain_veg != int(5):
+            interc = rain_ppl * rainfallm  # interception is konstant
+            # jj nemelo by to byt interc = (1-rain_ppl) * rainfallm
+            #                             -------------
+
+            sum_interception += interc  # sum of intercepcion
+            NS = rainfallm - interc  # netto rainfallm
+            # jj nemela by byt srazka 0 dokun neni naplnena intercepcni zona?
+            #
+
+            # if potentional interception is overthrown by intercepcion sum, then the rainfall is effetive
+            if sum_interception >= rain_pi:
+                rain_veg = int(5)
+        else:
+            NS = rainfallm
+
+        return NS, sum_interception, rain_veg
