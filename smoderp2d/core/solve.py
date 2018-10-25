@@ -264,13 +264,11 @@ class ImplicitSolver:
             t2 = time.time()
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-            t3 = time.time()
-
+            
             if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
 
             err = np.sum(hewp - self.hnew)**2.0
-            Logger.debug(err)
 
 
         # write hydrograph record
@@ -283,5 +281,5 @@ class ImplicitSolver:
                     self
                 )
 
-        make_sur_raster(self, 'out', self.total_time)
+        make_sur_raster(self, Globals.outdir, self.total_time)
         return 1
