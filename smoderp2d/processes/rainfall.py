@@ -187,27 +187,3 @@ class Rainfall():
 
         return NS
 
-
-
-    def current_rain_old(rain, rainfallm, sum_interception):
-        # jj
-        rain_veg = rain.veg_true
-        rain_ppl = rain.ppl
-        rain_pi = rain.pi
-        if rain_veg != int(5):
-            interc = rain_ppl * rainfallm  # interception is konstant
-            # jj nemelo by to byt interc = (1-rain_ppl) * rainfallm
-            #                             -------------
-
-            sum_interception += interc  # sum of intercepcion
-            NS = rainfallm - interc  # netto rainfallm
-            # jj nemela by byt srazka 0 dokun neni naplnena intercepcni zona?
-            #
-
-            # if potentional interception is overthrown by intercepcion sum, then the rainfall is effetive
-            if sum_interception >= rain_pi:
-                rain_veg = int(5)
-        else:
-            NS = rainfallm
-
-        return NS, sum_interception, rain_veg
