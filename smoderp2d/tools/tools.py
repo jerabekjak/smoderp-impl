@@ -1,7 +1,7 @@
 import os
 import sys
 import numpy as np
-from smoderp2d.core.General import Globals
+from smoderp2d.core.general import Globals
 
 
 # Class with the debug mark

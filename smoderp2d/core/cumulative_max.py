@@ -11,7 +11,7 @@ import numpy as np
 
 
 # smoderp import
-from smoderp2d.core.General import *
+from smoderp2d.core.general import *
 from smoderp2d.tools.tools import comp_type
 import smoderp2d.io_functions.prt as prt
 

@@ -1,6 +1,6 @@
 
 
-from smoderp2d.core.General import Globals as Gl
+from smoderp2d.core.general import Globals as Gl
 from smoderp2d.core.Flow import *
 
 

@@ -20,7 +20,7 @@ import time
 import os
 import sys
 
-from smoderp2d.core.General import Globals
+from smoderp2d.core.general import Globals
 
 
 class Runoff():

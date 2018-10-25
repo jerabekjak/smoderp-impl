@@ -1,4 +1,4 @@
-from smoderp2d.core.General import Globals
+from smoderp2d.core.general import Globals
 from smoderp2d.tools.tools import make_ASC_raster
 from smoderp2d.tools.tools import make_sur_raster
 import smoderp2d.processes.rainfall as rain_f

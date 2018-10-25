@@ -4,8 +4,8 @@ import sys
 import os
 
 
-from smoderp2d.core.General import Globals as Gl
-from smoderp2d.core.General import Size
+from smoderp2d.core.general import Globals as Gl
+from smoderp2d.core.general import Size
 from smoderp2d.core.KinematicDiffuse import *
 
 

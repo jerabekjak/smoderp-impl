@@ -1,7 +1,7 @@
 # @package smoderp2d.courant defines iteration criterion
 
 from smoderp2d.exceptions import MaxIterationExceeded
-from smoderp2d.core.General import Globals as Gl
+from smoderp2d.core.general import Globals as Gl
 
 
 class IterCrit():
