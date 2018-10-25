@@ -10,7 +10,6 @@ class IterCrit():
     #
     def __init__(self):
         self.iter_ = 0
-        self.crit_iter_ = 7
         self.max_delta_t = Gl.maxdt
         self.dt = Gl.maxdt
         self.min_delta_t = 0.1
@@ -32,7 +31,7 @@ class IterCrit():
     # Check max iteration reached
     # 
     def crit_iter_check(self, total_time):
-        if (self.iter_ >= self.crit_iter_):
+        if (self.iter_ >= self.max_iter):
             return True
             #raise MaxIterationExceeded(self.crit_iter_, total_time)
 
