@@ -125,6 +125,17 @@ class ImplicitSolver:
         # variable counts rills
         self.rill_count = 0
 
+        from smoderp2d.processes.surface import sheet_flowb_
+        self.sheet_flow = sheet_flowb_
+
+        # if rills are calculated
+        if gl.isRill:
+            from smoderp2d.processes.rill import rill
+            self.rill_flow = rill
+        else:
+            from smoderp2d.processes.rill import rill_pass
+            self.rill_flow = rill_pass
+
         # opens files for storing hydrographs
         if gl.points and gl.points != "#":
             self.hydrographs = wf.Hydrographs()
@@ -152,14 +163,6 @@ class ImplicitSolver:
     def fillAmat(self, dt):
         t1 = time.time()
         gl = Globals()
-        from smoderp2d.processes.surface import sheet_flowb_
-
-        # if rills are calculated
-        if gl.isRill:
-            from smoderp2d.processes.rill import rill
-        else:
-            from smoderp2d.processes.rill import rill_pass
-            rill = rill_pass
 
         # potential precipitation
         PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
@@ -185,7 +188,6 @@ class ImplicitSolver:
             j = self.getIJ[iel][1]
 
             # infiltration
-
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             if inf >= self.hold[iel]:
@@ -200,7 +202,7 @@ class ImplicitSolver:
                 hrill = max(0, self.hnew[iel] - hcrit)
 
                 t1 = time.time()
-                sf = sheet_flowb_(a, b, hsheet)
+                sf = self.sheet_flow(a, b, hsheet)
                 t2 = time.time()
                 tsf += (t2 - t1)
 
@@ -208,20 +210,11 @@ class ImplicitSolver:
                 if (hrill > 0):
                     self.rill_count += 1
                     t1 = time.time()
-                    rf = rill(
+                    rf = self.rill_flow(
                         i, j, hrill, dt) / self.hnew[iel]
-                    t2 = time.time()
-                    trf += (t2 - t1)
-                    # if (iel == 41):
-                    #print self.hnew[iel], hsheet, hrill, sf, rf
 
                 else:
                     pass
-                    # if (iel == 41):
-                    #print self.hnew[iel], hsheet, hrill, sf, rf
-
-                # if (iel==50) :
-                    #print iel, hsheet, hrill, sf, rf
 
                 data.append(
                     (1. / dt + gl.dx * (sf) / gl.pixel_area) + rf / gl.pixel_area)
@@ -235,21 +228,19 @@ class ImplicitSolver:
                     i = self.getIJ[inel][0]
                     j = self.getIJ[inel][1]
                     hcrit = gl.get_hcrit(i, j)
-                    #Logger.debug('hcrit natvrdo')
-                    #hcrit = 0.01
                     a = gl.get_aa(i, j)
                     b = gl.get_b(i, j)
 
                     hsheet = min(hcrit, self.hnew[inel])
                     hrill = max(0, self.hnew[inel] - hcrit)
                     t1 = time.time()
-                    sf = sheet_flowb_(a, b, hsheet)
+                    sf = self.sheet_flow(a, b, hsheet)
                     t2 = time.time()
                     tsf += (t2 - t1)
                     rf = 0
                     if (hrill > 0):
                         t1 = time.time()
-                        rf = rill(
+                        rf = self.rill_flow(
                             i, j, hrill, dt) / self.hnew[iel]
                         t2 = time.time()
                         trf += (t2 - t1)
@@ -263,10 +254,6 @@ class ImplicitSolver:
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
             t2 = time.time()
             tb += (t2 - t1)
-
-        #print tsf, ';',
-        #print trf, ';',
-        #print tb, ';',
 
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)

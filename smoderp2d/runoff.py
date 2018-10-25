@@ -48,7 +48,6 @@ class Runoff():
         self.iter_crit.check_time_step()
 
         ok = 1
-        #print 'povrch;rejha;b;fillcelk;resic'
         while (self.LS.total_time <= gl.end_time):
             self.iter_crit.reset()
             if ok == 1:
