@@ -122,6 +122,9 @@ class ImplicitSolver:
 
         # variable counts rills
         self.rill_count = 0
+        
+        # iteration criterion
+        self.err = 1e-5
 
         from smoderp2d.processes.surface import sheet_flowb_
         self.sheet_flow = sheet_flowb_
@@ -163,7 +166,6 @@ class ImplicitSolver:
                 )
 
     def fillAmat(self, dt):
-        t1 = time.time()
         gl = Globals()
 
         # potential precipitation
@@ -181,10 +183,6 @@ class ImplicitSolver:
         data = []
         self.rill_count = 0
 
-        tsf = 0
-        trf = 0
-        tb = 0
-
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
@@ -197,12 +195,7 @@ class ImplicitSolver:
                 b = gl.get_b(i, j)
                 hsheet = min(hcrit, self.hnew[iel])
                 hrill = max(0, self.hnew[iel] - hcrit)
-
-                t1 = time.time()
                 sf = self.sheet_flow(a, b, hsheet)
-                t2 = time.time()
-                tsf += (t2 - t1)
-
                 rf = 0
                 if (hrill > 0):
                     self.rill_count += 1
@@ -227,20 +220,13 @@ class ImplicitSolver:
                     hcrit = gl.get_hcrit(i, j)
                     a = gl.get_aa(i, j)
                     b = gl.get_b(i, j)
-
                     hsheet = min(hcrit, self.hnew[inel])
                     hrill = max(0, self.hnew[inel] - hcrit)
-                    t1 = time.time()
                     sf = self.sheet_flow(a, b, hsheet)
-                    t2 = time.time()
-                    tsf += (t2 - t1)
                     rf = 0
                     if (hrill > 0):
-                        t1 = time.time()
                         rf = self.rill_flow(
                             i, j, hrill, dt) / self.hnew[iel]
-                        t2 = time.time()
-                        trf += (t2 - t1)
 
                     data.append(-gl.dx * (sf) / gl.pixel_area -
                                 rf / gl.pixel_area)
@@ -258,7 +244,7 @@ class ImplicitSolver:
             # effective precipitation
             ES = self.rainfall.current_rain(i,j,PS)
                 
-            self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
+            self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
 
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
@@ -270,7 +256,7 @@ class ImplicitSolver:
 
         err = 1
 
-        while (err > 0.000001):
+        while (err > self.err):
 
             iter_crit.iter_up()
             t1 = time.time()
@@ -284,6 +270,7 @@ class ImplicitSolver:
                 return 0
 
             err = np.sum(hewp - self.hnew)**2.0
+            Logger.debug(err)
 
 
         # write hydrograph record
