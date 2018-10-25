@@ -34,9 +34,6 @@ class Runoff():
         # init iteration and time step controll
         self.iter_crit = IterCrit()
 
-        # set up a maximum time
-        self.iter_crit.set_time_step(Globals.maxdt)
-
         self.LS = ImplicitSolver(self.iter_crit)
         self.provider = provider
 

@@ -19,16 +19,12 @@ class IterCrit():
         self.iter_ = 0
         self.crit_iter_ = 7
         self.max_delta_t = Gl.maxdt
+        self.dt = Gl.maxdt
         self.min_delta_t = 0.1
         self.max_iter = 7
         self.min_iter = 4
         self.pre_rill_count = 0
 
-    # Store the original guess time step
-    #
-    def set_time_step(self, dt):
-        self.dt = dt
-    
     # Reset the iteration count
     #
     def reset(self):
