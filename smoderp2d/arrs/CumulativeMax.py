@@ -1,4 +1,4 @@
-# @package smoderp2d.arrs.CumulativeMax
+# @package smoderp2d.core.CumulativeMax
 #
 #  package contains classes save the cumulative or maximum
 #  values of the results in each time step.
@@ -11,7 +11,7 @@ import numpy as np
 
 
 # smoderp import
-from smoderp2d.arrs.General import *
+from smoderp2d.core.General import *
 from smoderp2d.tools.tools import comp_type
 import smoderp2d.io_functions.prt as prt
 
@@ -37,11 +37,11 @@ class CumulativeSubsurface(object):
         prt.message('\tSubsurface')
         super(CumulativeSubsurface, self).__init__()
 
-        self.arrs[17] = 'exfiltration'
-        self.arrs[18] = 'percolation'
-        self.arrs[19] = 'h_sub'
-        self.arrs[20] = 'q_sub'
-        self.arrs[21] = 'V_sub'
+        self.core[17] = 'exfiltration'
+        self.core[18] = 'percolation'
+        self.core[19] = 'h_sub'
+        self.core[20] = 'q_sub'
+        self.core[21] = 'V_sub'
 
         self.names[17] = 'CumExfiltrL3'
         self.names[18] = 'CumPercolL3'
@@ -118,7 +118,7 @@ class Cumulative(CumulativeSubsurface if subflow == True else CumulativeSubsurfa
         #
         #  self.arr is used in the smoderp2d.io_functions.post_proc
         #
-        self.arrs = {1: 'infiltration',
+        self.core = {1: 'infiltration',
                      2: 'precipitation',
                      3: 'h_sur',
                      4: 'q_sur',

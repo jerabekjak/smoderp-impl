@@ -20,13 +20,13 @@ import time
 import os
 import sys
 
-from smoderp2d.arrs.General import Globals
+from smoderp2d.core.General import Globals
 
 
 class Runoff():
 
     def __init__(self, provider):
-        from smoderp2d.arrs.Solve import ImplicitSolver
+        from smoderp2d.core.Solve import ImplicitSolver
         from smoderp2d.iter_crit import IterCrit
 
         gl = Globals()

@@ -112,7 +112,7 @@ def do(cumulative, mat_slope, G, surArr):
 
     # make rasters from cumulative class
     for i in main_output:
-        arrin = np.copy(getattr(cumulative, cumulative.arrs[i]))
+        arrin = np.copy(getattr(cumulative, cumulative.core[i]))
         outname = cumulative.names[i]
         raster_output(arrin, G, finState, outname)
 
@@ -163,7 +163,7 @@ def do(cumulative, mat_slope, G, surArr):
         #####ll_corner = arcpy.Point(G.xllcorner, G.yllcorner)
 
         # for i in main_output:
-        #####arrin = np.copy(getattr(cumulative, cumulative.arrs[i]))
+        #####arrin = np.copy(getattr(cumulative, cumulative.core[i]))
         #####raster_output_arcgis (aarin, G)
 
         #####vRest     = np.zeros(np.shape(surArr),float)

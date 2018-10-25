@@ -8,7 +8,7 @@ from smoderp2d.tools.tools import get_argv
 import smoderp2d.io_functions.prt as prt
 from smoderp2d.exceptions import MaxIterationExceeded
 
-from smoderp2d.arrs.General import Globals as Gl
+from smoderp2d.core.General import Globals as Gl
 
 
 class IterCrit():

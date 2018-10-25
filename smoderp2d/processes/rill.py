@@ -1,5 +1,5 @@
 import math
-from smoderp2d.arrs.General import Globals
+from smoderp2d.core.General import Globals
 import smoderp2d.constants as constants
 
 courantMax = 1.0

@@ -1,4 +1,4 @@
-# @package smoderp2d.arrs.Surface
+# @package smoderp2d.core.Surface
 #
 #  Package contains classes and methods to campute
 #  surface processes
@@ -10,9 +10,9 @@ import sys
 import os
 #import psutil
 
-from smoderp2d.arrs.General import Globals
-from smoderp2d.arrs.KinematicDiffuse import *
-from smoderp2d.arrs.Stream import *
+from smoderp2d.core.General import Globals
+from smoderp2d.core.KinematicDiffuse import *
+from smoderp2d.core.Stream import *
 
 
 import smoderp2d.processes.rill as rill

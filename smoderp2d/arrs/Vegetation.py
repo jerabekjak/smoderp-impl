@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from smoderp2d.arrs.General import Size
+from smoderp2d.core.General import Size
 
 
 class VegArrs:
