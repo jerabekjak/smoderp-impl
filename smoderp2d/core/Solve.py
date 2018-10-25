@@ -105,7 +105,7 @@ def init_getIJel():
 
 class ImplicitSolver:
 
-    def __init__(self,iter_crit):
+    def __init__(self, iter_crit):
 
         gl = Globals()
         r = gl.get_rows()
@@ -153,18 +153,18 @@ class ImplicitSolver:
         t1 = time.time()
         gl = Globals()
         from smoderp2d.processes.surface import sheet_flowb_
-        
-        # if rills are calculated 
+
+        # if rills are calculated
         if gl.isRill:
             from smoderp2d.processes.rill import rill
         else:
             from smoderp2d.processes.rill import rill_pass
             rill = rill_pass
-        
+
         # potential precipitation
         PS, self.tz = rain_f.timestepRainfall(self.total_time, dt, self.tz)
 
-        # prepares infiltration table 
+        # prepares infiltration table
         for iii in gl.get_combinatIndex():
             index = iii[0]
             k = iii[1]
@@ -175,35 +175,35 @@ class ImplicitSolver:
         # creates empty list for data
         data = []
         self.rill_count = 0
-        
+
         tsf = 0
         trf = 0
-        tb  = 0
-        
+        tb = 0
+
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
 
             # infiltration
-            
+
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
-            
+
             # overland outflow
             if self.hnew[iel] > 0:
                 hcrit = gl.get_hcrit(i, j)
                 a = gl.get_aa(i, j)
-                b = gl.get_b(i, j)  
+                b = gl.get_b(i, j)
                 hsheet = min(hcrit, self.hnew[iel])
                 hrill = max(0, self.hnew[iel] - hcrit)
-                
+
                 t1 = time.time()
                 sf = sheet_flowb_(a, b, hsheet)
                 t2 = time.time()
-                tsf += (t2-t1)
-                
+                tsf += (t2 - t1)
+
                 rf = 0
                 if (hrill > 0):
                     self.rill_count += 1
@@ -211,7 +211,7 @@ class ImplicitSolver:
                     rf = rill(
                         i, j, hrill, dt) / self.hnew[iel]
                     t2 = time.time()
-                    trf += (t2-t1)
+                    trf += (t2 - t1)
                     # if (iel == 41):
                     #print self.hnew[iel], hsheet, hrill, sf, rf
 
@@ -245,42 +245,41 @@ class ImplicitSolver:
                     t1 = time.time()
                     sf = sheet_flowb_(a, b, hsheet)
                     t2 = time.time()
-                    tsf += (t2-t1)
+                    tsf += (t2 - t1)
                     rf = 0
                     if (hrill > 0):
                         t1 = time.time()
                         rf = rill(
                             i, j, hrill, dt) / self.hnew[iel]
                         t2 = time.time()
-                        trf += (t2-t1)
+                        trf += (t2 - t1)
 
                     data.append(-gl.dx * (sf) / gl.pixel_area -
                                 rf / gl.pixel_area)
                 else:
                     data.append(0)
-                    
+
             t1 = time.time()
             self.b[iel] = self.hold[iel] / dt + PS / dt - inf / dt
             t2 = time.time()
-            tb += (t2-t1)
-            
+            tb += (t2 - t1)
+
         #print tsf, ';',
         #print trf, ';',
         #print tb, ';',
-        
+
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
-        
+
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
 
         hewp = self.hnew.copy()
-        
+
         err = 1
-        
-        
+
         while (err > 0.000001):
-            
+
             iter_crit.iter_up()
             t1 = time.time()
             self.fillAmat(iter_crit.dt)
@@ -290,20 +289,20 @@ class ImplicitSolver:
             t3 = time.time()
             #print t2 - t1,  ';',
             #print t3 - t2
-            #Logger.debug(hewp)
+            # Logger.debug(hewp)
             #Logger.debug(abs(np.sum((hewp - self.hnew))))
             #Logger.debug((hewp - self.hnew))
-            #Logger.debug(err)
-            
-            if (iter_crit.crit_iter_check(self.total_time)) : 
+            # Logger.debug(err)
+
+            if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
-                 
+
             #err = abs(np.sum((hewp - self.hnew)))
             err = np.sum(hewp - self.hnew)**2.0
-            
-        #Logger.debug(iter_crit.crit_iter_check(self.total_time))
-        #raw_input()
-        
+
+        # Logger.debug(iter_crit.crit_iter_check(self.total_time))
+        # raw_input()
+
         # write hydrograph record
         for i in Globals.rr:
             for j in Globals.rc[i]:
