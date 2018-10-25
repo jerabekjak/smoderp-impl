@@ -5,10 +5,12 @@ import os
 import time
 
 # python 2.7 hack (in Python 3 can be replaced by 'terminates')
+
+
 def customEmit(self, record):
     try:
         msg = self.format(record)
-        if not hasattr(types, "UnicodeType"): # if no unicode support...
+        if not hasattr(types, "UnicodeType"):  # if no unicode support...
             self.stream.write(msg)
         else:
             try:
@@ -21,17 +23,18 @@ def customEmit(self, record):
         self.flush()
     except (KeyboardInterrupt, SystemExit):
         raise
-    except:
+    except BaseException:
         self.handleError(record)
+
 
 class NoNewLineLogHandler(logging.StreamHandler):
     def __init__(self, *args):
         setattr(logging.StreamHandler,
                 logging.StreamHandler.emit.__name__,
                 customEmit
-        )
+                )
         logging.StreamHandler.__init__(self, *args)
-        
+
 
 class LoggerClass(logging.getLoggerClass()):
     def __init__(self, name, level=logging.NOTSET):
@@ -48,7 +51,7 @@ class LoggerClass(logging.getLoggerClass()):
                                                             message,
                                                             os.linesep),
                   args, **kwargs
-        )
+                  )
 
     def info(self, message, *args, **kwargs):
         if not self.isEnabledFor(logging.INFO):
@@ -57,7 +60,7 @@ class LoggerClass(logging.getLoggerClass()):
                                                           message,
                                                           os.linesep),
                   args, **kwargs
-        )
+                  )
 
     def warning(self, message, *args, **kwargs):
         if not self.isEnabledFor(logging.WARNING):
@@ -66,7 +69,7 @@ class LoggerClass(logging.getLoggerClass()):
                                                                 message,
                                                                 os.linesep),
                   args, **kwargs
-        )
+                  )
 
     def error(self, message, *args, **kwargs):
         if not self.isEnabledFor(logging.ERROR):
@@ -75,7 +78,7 @@ class LoggerClass(logging.getLoggerClass()):
                                                             message,
                                                             os.linesep),
                   args, **kwargs
-        )
+                  )
 
     def critical(self, message, *args, **kwargs):
         if not self.isEnabledFor(logging.CRITICAL):
@@ -84,20 +87,21 @@ class LoggerClass(logging.getLoggerClass()):
                                                                   message,
                                                                   os.linesep),
                   args, **kwargs
-        )
-    
-    
+                  )
+
     def progress(self, i, dt, iter_, total_time):
-        self.info("Total time      [s]: {0:.2f}".format(total_time)) # TODO: ms ???
+        self.info("Total time      [s]: {0:.2f}".format(
+            total_time))  # TODO: ms ???
         self.info("Time step       [s]: {0:.2f}".format(dt))
         self.info("Time iterations    : {0:d}".format(iter_))
         self.info("Percentage done [%]: {0:.2f}".format(i))
         if i > 0:
             diffTime = time.time() - self.startTime
             remaining = (100.0 * diffTime) / i - diffTime
+            self.info("Time to end     [s]: {0:.2f}".format(remaining))
         else:
-            remaining = '??'
-        self.info("Time to end     [s]: {0:.2f}".format(remaining))
+            self.info("Time to end     [s]: {}".format('??'))
         self.info("-" * 40)
+
 
 Logger = LoggerClass('Smoderp')

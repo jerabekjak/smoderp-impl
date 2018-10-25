@@ -44,9 +44,13 @@ class Runoff():
         gl = Globals()
 
         self.LS.solveStep(self.iter_crit)
-        self.provider.progress(self.iter_crit.dt, 0, self.LS.total_time)
         self.LS.total_time += self.iter_crit.dt
         self.iter_crit.check_time_step()
+        
+        Logger.progress(0.,
+                    self.iter_crit.dt,
+                    self.iter_crit.iter_,
+                    self.LS.total_time)
 
         ok = 1
         while (self.LS.total_time <= gl.end_time):
