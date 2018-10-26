@@ -236,7 +236,7 @@ class ImplicitSolver:
                 
                 rf = sf = 0
                 if (self.hnew[inel] > hcrit):
-                    hrill = self.hnew[iel] - hcrit
+                    hrill = self.hnew[inel] - hcrit
                     rf = self.rill_flow(
                         i, j, hrill, dt) / self.hnew[inel]
                     
