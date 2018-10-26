@@ -18,6 +18,7 @@ def update_hb(i,j,V_to_rill, b):
     if V < 0:
         raise NegativeVolumeInRIll(V)
     newb = math.sqrt(V/(rr*l))
+    
     if (V > 0):
         b = newb
         h = V/(b*l)
