@@ -1,6 +1,8 @@
 import math
 from smoderp2d.core.general import Globals
 import smoderp2d.constants as constants
+from smoderp2d.exceptions import NegativeVolumeInRIll
+
 
 courantMax = 1.0
 courantMin = 0.2
@@ -12,17 +14,13 @@ def update_hb(i,j,V_to_rill, b):
     V = V_to_rill
     rr = constants.RILL_RATIO
     l  = gl.get_efect_contour(i,j)
+    
     if V < 0:
-        print "chybka", V
-        raw_input()
+        raise NegativeVolumeInRIll(V)
     newb = math.sqrt(V/(rr*l))
-    #if ppp :  print 'zvetsuje', newb, b, V
     if (V > 0):
-        #if newb > b:
         b = newb
         h = V/(b*l)
-        #else:
-            #h = V/(b*l)
     else:
         h = V/(b*l)
 
