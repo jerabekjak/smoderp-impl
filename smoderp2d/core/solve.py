@@ -119,22 +119,22 @@ class ImplicitSolver:
         self.b = np.zeros([self.nEl], float)
         self.hnew = np.ones([self.nEl], float)
         self.hold = np.zeros([self.nEl], float)
-        
+
         # determine the sheet flow under supercritical flow
         self.flow_hcrit = np.zeros([self.nEl], float)
         from smoderp2d.processes.surface import sheet_flow
-        
-        for i in range(self.nEl):
+
+        for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
             hcrit = gl.get_hcrit(i, j)
             a = gl.get_aa(i, j)
             b = gl.get_b(i, j)
-            self.flow_hcrit[i] = sheet_flow(a,b,hcrit)
-            
+            self.flow_hcrit[i] = sheet_flow(a, b, hcrit)
+
         # variable counts rills
         self.rill_count = 0
-        
+
         # iteration criterion
         self.err = 1e-5
 
@@ -148,11 +148,10 @@ class ImplicitSolver:
         else:
             from smoderp2d.processes.rill import rill_pass
             self.rill_flow = rill_pass
-        
+
         from smoderp2d.processes.rainfall import Rainfall
         self.rainfall = Rainfall()
-        
-        
+
         # opens files for storing hydrographs
         if gl.points and gl.points != "#":
             self.hydrographs = wf.Hydrographs()
@@ -199,64 +198,58 @@ class ImplicitSolver:
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
 
-
-            # overland outflow
-            if self.hnew[iel] > 0:
-                hcrit = gl.get_hcrit(i, j)
-                a = gl.get_aa(i, j)
-                b = gl.get_b(i, j)
-                hsheet = min(hcrit, self.hnew[iel])
-                hrill = max(0, self.hnew[iel] - hcrit)
-                sf = self.sheet_flow(a, b, hsheet)
-                rf = 0
-                if (hrill > 0):
-                    self.rill_count += 1
-                    t1 = time.time()
-                    rf = self.rill_flow(
-                        i, j, hrill, dt) / self.hnew[iel]
-
-                else:
-                    pass
-
-                data.append(
-                    (1. / dt + gl.dx * (sf) / gl.pixel_area) + rf / gl.pixel_area)
-            else:
-                data.append((1. / dt))
-            #print max(gl.dx * (sf) / gl.pixel_area*dt/gl.dx, rf/ gl.pixel_area * dt / gl.dx)
-            # TODO to by meli byt jiny acka a becka
-            # pokud to vteka z jineho lu nebo pudy
-            for inel in self.getElIN[iel]:
-                if self.hnew[inel] > 0:
-                    i = self.getIJ[inel][0]
-                    j = self.getIJ[inel][1]
-                    hcrit = gl.get_hcrit(i, j)
-                    a = gl.get_aa(i, j)
-                    b = gl.get_b(i, j)
-                    hsheet = min(hcrit, self.hnew[inel])
-                    hrill = max(0, self.hnew[inel] - hcrit)
-                    sf = self.sheet_flow(a, b, hsheet)
-                    rf = 0
-                    if (hrill > 0):
-                        rf = self.rill_flow(
-                            i, j, hrill, dt) / self.hnew[iel]
-
-                    data.append(-gl.dx * (sf) / gl.pixel_area -
-                                rf / gl.pixel_area)
-                else:
-                    data.append(0)
-
-
-
             # infiltration
             inf = infilt.philip_infiltration(
                 gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
-                
+
             # effective precipitation
-            ES = self.rainfall.current_rain(i,j,PS)
-                
+            ES = self.rainfall.current_rain(i, j, PS)
+
+            hcrit = gl.get_hcrit(i, j)
+
             self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
+            rf = sf = 0
+
+            if (self.hnew[iel] > hcrit):
+                self.rill_count += 1
+                hrill = self.hnew[iel] - hcrit
+                rf = self.rill_flow(
+                    i, j, hrill, dt) / self.hnew[iel]
+
+                self.b[iel] += - self.flow_hcrit[iel]
+
+            else:
+                a = gl.get_aa(i, j)
+                b = gl.get_b(i, j)
+                hsheet = max(0, self.hnew[iel])
+                sf = self.sheet_flow(a, b, hsheet)
+
+            data.append(
+                1. / dt + gl.dx * (sf) / gl.pixel_area + rf / gl.pixel_area)
+
+            for inel in self.getElIN[iel]:
+                i = self.getIJ[inel][0]
+                j = self.getIJ[inel][1]
+                hcrit = gl.get_hcrit(i, j)
+                
+                rf = sf = 0
+                if (self.hnew[inel] > hcrit):
+                    hrill = self.hnew[iel] - hcrit
+                    rf = self.rill_flow(
+                        i, j, hrill, dt) / self.hnew[inel]
+                    
+                    self.b[iel] += self.flow_hcrit[inel]
+                    
+                else :
+                    a = gl.get_aa(i, j)
+                    b = gl.get_b(i, j)
+                    hsheet = max(0, self.hnew[iel])
+                    sf = self.sheet_flow(a, b, hsheet)
+
+                data.append(-gl.dx * (sf) / gl.pixel_area -
+                            rf / gl.pixel_area)
 
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)
@@ -276,12 +269,11 @@ class ImplicitSolver:
             t2 = time.time()
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-            
+
             if (iter_crit.crit_iter_check(self.total_time)):
                 return 0
 
             err = np.sum(hewp - self.hnew)**2.0
-
 
         # write hydrograph record
         for i in Globals.rr:
