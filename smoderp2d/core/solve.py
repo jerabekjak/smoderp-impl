@@ -30,14 +30,14 @@ def init_getIJel():
     """
 
     gl = Globals()
-    inflows = D8_.new_inflows(gl.mat_fd)
+    inflows = D8_.new_inflows(Globals.mat_fd)
 
-    r = gl.get_rows()
-    c = gl.get_cols()
-    rr = gl.get_rrows()
-    rc = gl.get_rcols()
-    br = gl.get_bor_rows()
-    bc = gl.get_bor_cols()
+    r = Globals.get_rows()
+    c = Globals.get_cols()
+    rr = Globals.get_rrows()
+    rc = Globals.get_rcols()
+    br = Globals.get_bor_rows()
+    bc = Globals.get_bor_cols()
 
     getEl = np.zeros([r, c], int)
     getIJ = []
@@ -107,9 +107,8 @@ class ImplicitSolver:
 
     def __init__(self, iter_crit):
 
-        gl = Globals()
-        r = gl.get_rows()
-        c = gl.get_cols()
+        r = Globals.get_rows()
+        c = Globals.get_cols()
 
         # aktualni cas programu
         self.total_time = 0
@@ -127,9 +126,9 @@ class ImplicitSolver:
         for iel in range(self.nEl):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
-            hcrit = gl.get_hcrit(i, j)
-            a = gl.get_aa(i, j)
-            b = gl.get_b(i, j)
+            hcrit = Globals.get_hcrit(i, j)
+            a = Globals.get_aa(i, j)
+            b = Globals.get_b(i, j)
             self.flow_hcrit[i] = sheet_flow(a, b, hcrit)
 
         # variable counts rills
@@ -142,7 +141,7 @@ class ImplicitSolver:
         self.sheet_flow = sheet_flowb_
 
         # if rills are calculated
-        if gl.isRill:
+        if Globals.isRill:
             from smoderp2d.processes.rill import rill
             self.rill_flow = rill
         else:
@@ -153,15 +152,15 @@ class ImplicitSolver:
         self.rainfall = Rainfall()
 
         # opens files for storing hydrographs
-        if gl.points and gl.points != "#":
+        if Globals.points and Globals.points != "#":
             self.hydrographs = wf.Hydrographs()
-            arcgis = gl.arcgis
+            arcgis = Globals.arcgis
             if not arcgis:
-                with open(os.path.join(gl.outdir, 'points.txt'), 'w') as fd:
-                    for i in range(len(gl.array_points)):
+                with open(os.path.join(Globals.outdir, 'points.txt'), 'w') as fd:
+                    for i in range(len(Globals.array_points)):
                         fd.write('{} {} {} {}'.format(
-                            gl.array_points[i][0], gl.array_points[i][3],
-                            gl.array_points[i][4], os.linesep
+                            Globals.array_points[i][0], Globals.array_points[i][3],
+                            Globals.array_points[i][4], os.linesep
                         ))
         else:
             self.hydrographs = wf.HydrographsPass()
@@ -177,18 +176,17 @@ class ImplicitSolver:
                 )
 
     def fillAmat(self, dt):
-        gl = Globals()
-
+        
         # potential precipitation
         PS = self.rainfall.timestepRainfall(self.total_time, dt)
 
         # prepares infiltration table
-        for iii in gl.get_combinatIndex():
+        for iii in Globals.get_combinatIndex():
             index = iii[0]
             k = iii[1]
             s = iii[2]
             iii[3] = infilt.phlilip(
-                k, s, dt, self.total_time, gl.get_NoDataValue())
+                k, s, dt, self.total_time, Globals.get_NoDataValue())
 
         # creates empty list for data
         data = []
@@ -200,14 +198,14 @@ class ImplicitSolver:
 
             # infiltration
             inf = infilt.philip_infiltration(
-                gl.get_mat_inf_index(i, j), gl.get_combinatIndex())
+                Globals.get_mat_inf_index(i, j), Globals.get_combinatIndex())
             if inf >= self.hold[iel]:
                 inf = self.hold[iel]
 
             # effective precipitation
             ES = self.rainfall.current_rain(i, j, PS)
-
-            hcrit = gl.get_hcrit(i, j)
+            
+            hcrit = Globals.get_hcrit(i, j)
 
             self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
             rf = sf = 0
@@ -221,18 +219,18 @@ class ImplicitSolver:
                 self.b[iel] += - self.flow_hcrit[iel]
 
             else:
-                a = gl.get_aa(i, j)
-                b = gl.get_b(i, j)
+                a = Globals.get_aa(i, j)
+                b = Globals.get_b(i, j)
                 hsheet = max(0, self.hnew[iel])
                 sf = self.sheet_flow(a, b, hsheet)
 
             data.append(
-                1. / dt + gl.dx * (sf) / gl.pixel_area + rf / gl.pixel_area)
+                1. / dt + Globals.dx * (sf) / Globals.pixel_area + rf / Globals.pixel_area)
 
             for inel in self.getElIN[iel]:
                 i = self.getIJ[inel][0]
                 j = self.getIJ[inel][1]
-                hcrit = gl.get_hcrit(i, j)
+                hcrit = Globals.get_hcrit(i, j)
                 
                 rf = sf = 0
                 if (self.hnew[inel] > hcrit):
@@ -243,13 +241,13 @@ class ImplicitSolver:
                     self.b[iel] += self.flow_hcrit[inel]
                     
                 else :
-                    a = gl.get_aa(i, j)
-                    b = gl.get_b(i, j)
+                    a = Globals.get_aa(i, j)
+                    b = Globals.get_b(i, j)
                     hsheet = max(0, self.hnew[iel])
                     sf = self.sheet_flow(a, b, hsheet)
 
-                data.append(-gl.dx * (sf) / gl.pixel_area -
-                            rf / gl.pixel_area)
+                data.append(-Globals.dx * (sf) / Globals.pixel_area -
+                            rf / Globals.pixel_area)
 
         self.A = csr_matrix((data, self.indices, self.indptr),
                             shape=(self.nEl, self.nEl), dtype=float)

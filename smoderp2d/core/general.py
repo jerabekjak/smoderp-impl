@@ -129,22 +129,28 @@ class Globals:
     
     def get_pixel_area(self):
         return self.pixel_area
-
+    
+    @classmethod
     def get_rows(self):
         return self.r
-
+    
+    @classmethod
     def get_cols(self):
         return self.c
-
+ 
+    @classmethod
     def get_rrows(self):
         return self.rr
-
+    
+    @classmethod
     def get_rcols(self):
         return self.rc
-
+ 
+    @classmethod
     def get_bor_rows(self):
         return self.br
-
+    
+    @classmethod
     def get_bor_cols(self):
         return self.bc
 
@@ -154,6 +160,7 @@ class Globals:
     def get_yllcorner(self):
         return self.yllcorner
 
+    @classmethod
     def get_NoDataValue(self):
         return self.NoDataValue
 
@@ -181,6 +188,7 @@ class Globals:
     def get_array_points(self):
         return self.array_points
 
+    @classmethod
     def get_combinatIndex(self):
         return self.combinatIndex
 
@@ -198,18 +206,23 @@ class Globals:
     def get_surface_retention(self):
         return self.surface_retention
 
+    @classmethod
     def get_mat_inf_index(self,i,j):
         return self.mat_inf_index[i][j]
-
+    
+    @classmethod
     def get_hcrit(self,i,j):
         return self.mat_hcrit[i][j]
 
+    @classmethod
     def get_aa(self,i,j):
         return self.mat_aa[i][j]
-
+    
+    @classmethod
     def get_b(self,i,j):
         return self.mat_b[i][j]
 
+    @classmethod
     def get_reten(self,i,j):
         return self.mat_reten[i][j]
 
