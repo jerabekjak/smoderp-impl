@@ -203,9 +203,6 @@ class Globals:
     def get_ppl(cls,i,j):
         return cls.mat_ppl[i][j]
 
-    def get_surface_retention(self):
-        return self.surface_retention
-
     @classmethod
     def get_mat_inf_index(self,i,j):
         return self.mat_inf_index[i][j]
@@ -225,6 +222,10 @@ class Globals:
     @classmethod
     def get_reten(self,i,j):
         return self.mat_reten[i][j]
+    
+    @classmethod
+    def set_reten(self,i,j, val):
+        self.mat_reten[i][j] = val
 
     def get_mat_fd(self):
         return self.mat_fd

@@ -205,6 +205,15 @@ class ImplicitSolver:
             # effective precipitation
             ES = self.rainfall.current_rain(i, j, PS)
             
+            # retention delete from the effective precipitation
+            ret = Globals.get_reten(i,j)
+            if ret >= ES:
+                Globals.set_reten(i,j,ref - ES)
+                ES = 0
+            else:
+                ES = min(ES,ES-ret)
+            
+
             hcrit = Globals.get_hcrit(i, j)
 
             self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
