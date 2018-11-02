@@ -221,7 +221,7 @@ class Globals:
 
     @classmethod
     def get_reten(self,i,j):
-        return self.mat_reten[i][j]
+        return - self.mat_reten[i][j]
     
     @classmethod
     def set_reten(self,i,j, val):
