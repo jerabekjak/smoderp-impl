@@ -16,6 +16,7 @@ class IterCrit():
         self.max_iter = 7
         self.min_iter = 4
         self.pre_rill_count = 0
+        self.multipiler = 0.8
 
     # Reset the iteration count
     #
@@ -39,9 +40,9 @@ class IterCrit():
     # 
     def check_time_step(self):
         if self.iter_ >= self.max_iter:
-            self.dt = max(0.1, self.dt * 0.7)
+            self.dt = max(0.1, self.dt * self.multipiler)
         if self.iter_ <= self.min_iter:
-            self.dt = min(self.max_delta_t, self.dt * 1.3)
+            self.dt = min(self.max_delta_t, self.dt * (1/self.multipiler))
 
     # Adjust time step
     # 

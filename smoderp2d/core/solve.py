@@ -207,7 +207,6 @@ class ImplicitSolver:
             
             # retention delete from the effective precipitation
             ret = Globals.get_reten(i,j)
-            print ret
             if ret >= ES:
                 Globals.set_reten(i,j,ret - ES)
                 ES = 0
