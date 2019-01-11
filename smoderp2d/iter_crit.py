@@ -13,8 +13,8 @@ class IterCrit():
         self.max_delta_t = Gl.maxdt
         self.dt = Gl.maxdt
         self.min_delta_t = 0.1
-        self.max_iter = 7
-        self.min_iter = 4
+        self.max_iter = 20
+        self.min_iter = 2
         self.pre_rill_count = 0
         self.multipiler = 0.8
 
