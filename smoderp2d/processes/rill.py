@@ -47,7 +47,7 @@ def rill(i,j,hrill,dt):
     gl.set_rill_width(i,j,b)
     return hloc*b*v
     
-def rill_pass(i,j,hrill,dt,sur):
+def rill_pass(i,j,hrill,dt):
     
     return 0
 
