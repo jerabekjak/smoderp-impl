@@ -231,7 +231,7 @@ class ImplicitSolver:
                 a = Globals.get_aa(i, j)
                 b = Globals.get_b(i, j)
                 hsheet = max(0, self.hnew[iel])
-                sf = self.sheet_flow(a, b, hsheet)
+                sf = self.sheet_flow(a, b, hsheet) * Globals.dx
 
             data.append(
                 1. / dt + Globals.dx * (sf) / Globals.pixel_area + rf / Globals.pixel_area)
@@ -253,7 +253,7 @@ class ImplicitSolver:
                     a = Globals.get_aa(i, j)
                     b = Globals.get_b(i, j)
                     hsheet = max(0, self.hnew[iel])
-                    sf = self.sheet_flow(a, b, hsheet)
+                    sf = self.sheet_flow(a, b, hsheet) * Globals.dx 
 
                 data.append(-Globals.dx * (sf) / Globals.pixel_area -
                             rf / Globals.pixel_area)
