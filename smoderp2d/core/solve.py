@@ -129,8 +129,8 @@ class ImplicitSolver:
             hcrit = Globals.get_hcrit(i, j)
             a = Globals.get_aa(i, j)
             b = Globals.get_b(i, j)
-            self.flow_hcrit[i] = sheet_flow(a, b, hcrit)
-
+            self.flow_hcrit[iel] = sheet_flow(a, b, hcrit)
+        
         # variable counts rills
         self.rill_count = 0
 
