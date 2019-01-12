@@ -102,18 +102,6 @@ class ImplicitSolver:
         self.hnew = np.ones([self.nEl+1], float)
         self.hold = np.zeros([self.nEl+1], float)
 
-        # determine the sheet flow under supercritical flow
-        self.flow_hcrit = np.zeros([self.nEl], float)
-        from smoderp2d.processes.surface import sheet_flow
-
-        for iel in range(self.nEl):
-            i = self.getIJ[iel][0]
-            j = self.getIJ[iel][1]
-            hcrit = Globals.get_hcrit(i, j)
-            a = Globals.get_aa(i, j)
-            b = Globals.get_b(i, j)
-            self.flow_hcrit[iel] = sheet_flow(a, b, hcrit)
-        
         # variable counts rills
         self.rill_count = 0
 
