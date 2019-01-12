@@ -29,7 +29,7 @@ def zapis(name, array_export, l_x, l_y, spix, vpix, NoDataValue, folder):
     ll_corner = arcpy.Point(l_x, l_y)
     raster = arcpy.NumPyArrayToRaster(
         array_export, ll_corner, spix, vpix, NoDataValue)
-    raster.save(folder+os.sep+name)
+    raster.save(folder + os.sep + name)
     return raster
 
 
@@ -56,9 +56,11 @@ def find_boudary_cells(r, c, mat_nan, noData, mfda):
                     val = -99
             else:
                 if val != noData:
-                    if mat_nan[i-1][j] == noData or mat_nan[i+1][j] == noData or mat_nan[i][j-1] == noData or mat_nan[i][j-1] == noData:
+                    if mat_nan[i - 1][j] == noData or mat_nan[i +
+                                                              1][j] == noData or mat_nan[i][j - 1] == noData or mat_nan[i][j - 1] == noData:
                         val = -99
-                    if mat_nan[i-1][j+1] == noData or mat_nan[i+1][j+1] == noData or mat_nan[i-1][j-1] == noData or mat_nan[i+1][j-1] == noData:
+                    if mat_nan[i - 1][j + 1] == noData or mat_nan[i + 1][j +
+                                                                         1] == noData or mat_nan[i - 1][j - 1] == noData or mat_nan[i + 1][j - 1] == noData:
                         val = -99
             mat_boundary[i][j] = val
 
@@ -76,11 +78,13 @@ def find_boudary_cells(r, c, mat_nan, noData, mfda):
             if mat_boundary[i][j] == -99 and inBoundary == True:
                 oneColBoundary.append(j)
 
-            # if (mat_boundary[i][j]==0.0 or mat_boundary[i][j]==-99) and inDomain == False:
+            # if (mat_boundary[i][j]==0.0 or mat_boundary[i][j]==-99) and
+            # inDomain == False:
             if (mat_boundary[i][j] == 0.0) and inDomain == False:
                 rows.append(i)
                 inDomain = True
-            # if (mat_boundary[i][j]==0.0 or mat_boundary[i][j]==-99) and inDomain == True:
+            # if (mat_boundary[i][j]==0.0 or mat_boundary[i][j]==-99) and
+            # inDomain == True:
             if (mat_boundary[i][j] == 0.0) and inDomain == True:
                 oneCol.append(j)
 
@@ -111,15 +115,15 @@ class Outlet:
         cn = []
         for i in [-1, 0, 1]:
             for j in [-1, 0, 1]:
-                if (cellI+i or cellJ+j) < 0:
+                if (cellI + i or cellJ + j) < 0:
                     pass
                 else:
                     if i != 0 or j != 0:
                         try:
-                            val = mat_nan[cellI+i][cellJ+j]
+                            val = mat_nan[cellI + i][cellJ + j]
                             if val > -1:
-                                cn.append([cellI+i, cellJ+j])
-                        except:
+                                cn.append([cellI + i, cellJ + j])
+                        except BaseException:
                             pass
         self.cell.append([cellI, cellJ])
         self.cellNeighbour.append(cn)
@@ -233,18 +237,18 @@ def prepare_data(args):
 
     if not os.path.exists(output):
         os.makedirs(output)
-    arcpy.AddMessage("Creating of the output directory: "+output)
+    arcpy.AddMessage("Creating of the output directory: " + output)
     outputgdb = arcpy.CreateFileGDB_management(output, "results.gdb")
 
     # os.removedirs(output)
     # os.makedirs(output)
-    temp = output+os.sep+"temp"
+    temp = output + os.sep + "temp"
     if not os.path.exists(temp):
         os.makedirs(temp)
 
     #tempgdb  = arcpy.CreateFileGDB_management(temp, "temp.gdb")
 
-    arcpy.AddMessage("Creating of the temp: "+temp)
+    arcpy.AddMessage("Creating of the temp: " + temp)
 
     path = gp.GetParameterAsText(constants.PARAMETER_PATH_TO_RAINFALL_FILE)
     dir = os.path.dirname(path)  # co to je???
@@ -266,7 +270,7 @@ def prepare_data(args):
     if not os.path.exists(temp):
         os.makedirs(temp)
 
-    dmt_copy = temp+os.sep+"dmt_copy"
+    dmt_copy = temp + os.sep + "dmt_copy"
     arcpy.AddMessage("DMT preparation...")
 
     arcpy.CopyRaster_management(dmt, dmt_copy)
@@ -319,8 +323,8 @@ def prepare_data(args):
     # adding attribute for soil and vegetation into attribute table (type short int)
     # preparation for clip
 
-    null = temp+os.sep+"hrance_rst"
-    null_shp = temp+os.sep+"null.shp"
+    null = temp + os.sep + "hrance_rst"
+    null_shp = temp + os.sep + "null.shp"
     arcpy.gp.Reclassify_sa(dmt_copy, "VALUE", "-100000 100000 1", null, "DATA")
     arcpy.RasterToPolygon_conversion(null, null_shp, "NO_SIMPLIFY")
 
@@ -328,7 +332,7 @@ def prepare_data(args):
     def addfield(inpute, newfield, datatyp, default_value):  # EDL
         try:
             arcpy.DeleteField_management(inpute, newfield)
-        except:
+        except BaseException:
             pass
         arcpy.AddField_management(inpute, newfield, datatyp)
         arcpy.CalculateField_management(
@@ -338,21 +342,21 @@ def prepare_data(args):
     def delfield(inpute, field):
         try:
             arcpy.DeleteField_management(inpute, newfield)
-        except:
+        except BaseException:
             pass
 
     # add filed for disslolving and masking
     fildname = "one"
-    veg = temp+os.sep+"LandCover.shp"
-    soil = temp+os.sep+"Siol_char.shp"
+    veg = temp + os.sep + "LandCover.shp"
+    soil = temp + os.sep + "Siol_char.shp"
     arcpy.Copy_management(veg_indata, veg)
     arcpy.Copy_management(soil_indata, soil)
 
     addfield(veg, fildname, "SHORT", 2)
     addfield(soil, fildname, "SHORT", 2)
 
-    soil_boundary = temp+os.sep+"s_b.shp"
-    veg_boundary = temp+os.sep+"v_b.shp"
+    soil_boundary = temp + os.sep + "s_b.shp"
+    veg_boundary = temp + os.sep + "v_b.shp"
 
     arcpy.Dissolve_management(veg, veg_boundary, vtyp)
     arcpy.Dissolve_management(soil, soil_boundary, ptyp)
@@ -360,7 +364,7 @@ def prepare_data(args):
     # mask and clip data
     arcpy.AddMessage("Clip of the source data by intersect")
     grup = [soil_boundary, veg_boundary, null_shp]
-    intersect = output+os.sep+"interSoilLU.shp"
+    intersect = output + os.sep + "interSoilLU.shp"
     arcpy.Intersect_analysis(grup, intersect, "ALL", "", "INPUT")
 
     if points and (points != "#") and (points != ""):
@@ -375,7 +379,7 @@ def prepare_data(args):
             tmpPoints.append([pnt.X, pnt.Y])
         del rows_p
 
-        pointsClipCheck = output+os.sep+"pointsCheck.shp"
+        pointsClipCheck = output + os.sep + "pointsCheck.shp"
         arcpy.Clip_analysis(points, intersect, pointsClipCheck)
 
         tmpPointsCheck = []
@@ -402,8 +406,8 @@ def prepare_data(args):
         points = pointsClipCheck
 
     arcpy.env.extent = intersect
-    soil_clip = temp+os.sep+"soil_clip.shp"
-    veg_clip = temp+os.sep+"veg_clip.shp"
+    soil_clip = temp + os.sep + "soil_clip.shp"
+    veg_clip = temp + os.sep + "veg_clip.shp"
 
     # clipping of the soil and veg data
 
@@ -419,7 +423,7 @@ def prepare_data(args):
         intersect, "puda_veg", "TEXT", "", "", "15", "", "NULLABLE", "NON_REQUIRED", "")
 
     if ptyp == vtyp:
-        vtyp1 = vtyp+"_1"
+        vtyp1 = vtyp + "_1"
     else:
         vtyp1 = vtyp
 
@@ -427,7 +431,7 @@ def prepare_data(args):
     fields = [ptyp, vtyp1, "puda_veg"]
     with arcpy.da.UpdateCursor(intersect, fields) as cursor:
         for row in cursor:
-            row[2] = row[0]+row[1]
+            row[2] = row[0] + row[1]
             cursor.updateRow(row)
     del cursor, row
 
@@ -435,7 +439,7 @@ def prepare_data(args):
     tab_puda_veg_code = gp.GetParameterAsText(
         constants.PARAMETER_SOILVEGTABLE_CODE)
 
-    puda_veg_dbf = temp+os.sep+"puda_veg_tab_current.dbf"
+    puda_veg_dbf = temp + os.sep + "puda_veg_tab_current.dbf"
 
     arcpy.CopyRows_management(tab_puda_veg, puda_veg_dbf)
     sfield = ["k", "s", "n", "pi", "ppl", "ret", "b", "x", "y", "tau", "v"]
@@ -473,12 +477,13 @@ def prepare_data(args):
                     sys.exit()
 
     # input float vaflues parameters
-    # delta_t = float(gp.GetParameterAsText(constants.PARAMETER_DELTA_T))*60.0 # prevod na sekundy
+    # delta_t = float(gp.GetParameterAsText(constants.PARAMETER_DELTA_T))*60.0
+    # # prevod na sekundy
     delta_t = "nechci"
     end_time = float(gp.GetParameterAsText(
-        constants.PARAMETER_END_TIME))*60.0  # prevod na sekundy
+        constants.PARAMETER_END_TIME)) * 60.0  # prevod na sekundy
     surface_retention = float(gp.GetParameterAsText(
-        constants.PARAMETER_SURFACE_RETENTION))/1000  # prevod z [mm] na [m]
+        constants.PARAMETER_SURFACE_RETENTION)) / 1000  # prevod z [mm] na [m]
 
     # boolean input parameter
     #
@@ -524,18 +529,18 @@ def prepare_data(args):
     vpix = dmt_desc.MeanCellHeight
     spix = dmt_desc.MeanCellWidth
 
-    maska = temp+os.sep+"maska"
+    maska = temp + os.sep + "maska"
     arcpy.PolygonToRaster_conversion(
         intersect, "FID", maska, "MAXIMUM_AREA", cellsize=vpix)
     # cropping rasters
 
     dmt_clip = ExtractByMask(dmt_copy, maska)
-    dmt_clip.save(output+os.sep+"DTM")
+    dmt_clip.save(output + os.sep + "DTM")
     slope_clip = ExtractByMask(slope_orig, maska)
-    slope_clip.save(temp+os.sep+"slope_clip")
+    slope_clip.save(temp + os.sep + "slope_clip")
 
     flow_direction_clip = ExtractByMask(flow_direction, maska)
-    flow_direction_clip.save(output+os.sep+"flowDir")
+    flow_direction_clip.save(output + os.sep + "flowDir")
 
     # cropped raster info
     dmt_desc = arcpy.Describe(dmt_clip)
@@ -601,8 +606,8 @@ def prepare_data(args):
     poradi = 0
 
     for x in sfield:
-        RtoNu = "r"+str(x)
-        d = temp+os.sep+RtoNu
+        RtoNu = "r" + str(x)
+        d = temp + os.sep + RtoNu
         arcpy.PolygonToRaster_conversion(
             intersect, str(x), d, "MAXIMUM_AREA", "", vpix)
         c = arcpy.RasterToNumPyArray(d)
@@ -634,7 +639,7 @@ def prepare_data(args):
                 try:
                     if combinat.index(ccc):
                         mat_inf_index[i][j] = combinat.index(ccc)
-                except:
+                except BaseException:
                     ccc = [kkk, sss]
                     combinat.append(ccc)
                     combinat.index(ccc)
@@ -657,7 +662,8 @@ def prepare_data(args):
         array_points = np.zeros([int(count), 5], float)
 
         i = 0
-        # each point is saved into matrix from second row to the end. First row is for maximal value from flow accumulation array
+        # each point is saved into matrix from second row to the end. First row
+        # is for maximal value from flow accumulation array
         for row in rows_p:
             # getting points ID
             fid = row.getValue('FID')
@@ -795,18 +801,18 @@ def prepare_data(args):
                 a = mat_a[i][j]
                 aa = mat_aa[i][j]
                 flux_crit = tau_crit * v_crit
-                exp = 1/(b - 1)
+                exp = 1 / (b - 1)
 
                 if slope == 0.0:
                     hcrit_tau = hcrit_v = hcrit_flux = 1000
 
                 else:
                     # h critical from v (10 je kuli jednotkam, bude jinak)
-                    hcrit_v = np.power((v_crit/aa), exp)
+                    hcrit_v = np.power((v_crit / aa), exp)
                     hcrit_tau = tau_crit / 98.07 / slope  # h critical from tau
                     # kontrola jednotek
                     hcrit_flux = np.power(
-                        (flux_crit/slope/98.07/aa), (1 / mat_b[i][j]))
+                        (flux_crit / slope / 98.07 / aa), (1 / mat_b[i][j]))
 
                 mat_hcrit_tau[i][j] = hcrit_tau
                 mat_hcrit_v[i][j] = hcrit_v
@@ -821,13 +827,13 @@ def prepare_data(args):
 
     rhcrit_tau = arcpy.NumPyArrayToRaster(
         mat_hcrit_tau, ll_corner, spix, vpix, "#")
-    rhcrit_tau.save(temp+os.sep+"hcrit_tau")
+    rhcrit_tau.save(temp + os.sep + "hcrit_tau")
     rhcrit_flux = arcpy.NumPyArrayToRaster(
         mat_hcrit_flux, ll_corner, spix, vpix, "#")
-    rhcrit_flux.save(temp+os.sep+"hcrit_flux")
+    rhcrit_flux.save(temp + os.sep + "hcrit_flux")
     rhcrit_v = arcpy.NumPyArrayToRaster(
         mat_hcrit_v, ll_corner, spix, vpix, "#")
-    rhcrit_v.save(temp+os.sep+"hcrit_v")
+    rhcrit_v.save(temp + os.sep + "hcrit_v")
     # else:
     #mat_hcrit = np.zeros([rows,cols],float)
 
@@ -844,10 +850,10 @@ def prepare_data(args):
     cossklon = arcpy.sa.Abs(cosasp)
     #times1 = arcpy.sa.Times(cossklon, sinsklon)
     times1 = arcpy.sa.Plus(cossklon, sinsklon)
-    times1.save(temp+os.sep+"ratio_cell")
+    times1.save(temp + os.sep + "ratio_cell")
 
     efect_vrst = arcpy.sa.Times(times1, spix)
-    efect_vrst.save(temp+os.sep+"efect_vrst")
+    efect_vrst.save(temp + os.sep + "efect_vrst")
     mat_efect_vrst = arcpy.RasterToNumPyArray(efect_vrst)
     zeros.append(mat_efect_vrst)
 
@@ -936,6 +942,6 @@ def prepare_data(args):
         mat_fd, mat_dmt, mat_efect_vrst, mat_slope, mat_nan, \
         mat_a,   \
         mat_n,   \
-        output, pixel_area, points, poradi,  end_time, spix, state_cell, \
+        output, pixel_area, points, poradi, end_time, spix, state_cell, \
         temp, type_of_computing, vpix, mfda, sr, itera,  \
         toky, cell_stream, mat_tok_usek, STREAM_RATIO, tokyLoc

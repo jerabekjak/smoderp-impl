@@ -74,8 +74,8 @@ class CumulativeSubsurface(object):
     #
     def update_cumulative_subsur(self, i, j, sub, q_subsur):
 
-        self.exfiltration[i][j] += sub.exfiltration*self.pixel_area
-        self.percolation[i][j] += sub.percolation*self.pixel_area
+        self.exfiltration[i][j] += sub.exfiltration * self.pixel_area
+        self.percolation[i][j] += sub.percolation * self.pixel_area
         self.V_sub[i][j] += sub.V_runoff
 
         if sub.h > self.h_sub[i][j]:
@@ -104,7 +104,8 @@ class CumulativeSubsurfacePass(object):
 #  the surface and rill flow
 #
 #
-class Cumulative(CumulativeSubsurface if subflow == True else CumulativeSubsurfacePass, Globals, Size):
+class Cumulative(CumulativeSubsurface if subflow ==
+                 True else CumulativeSubsurfacePass, Globals, Size):
 
     # the constructor
     #
@@ -161,7 +162,7 @@ class Cumulative(CumulativeSubsurface if subflow == True else CumulativeSubsurfa
                       }
         # 12 : 'MaxVeloRill',
 
-        if (Globals.r == None or Globals.r == None):
+        if (Globals.r is None or Globals.r is None):
             sys.exit("Global variables are not assigned")
 
         r = self.r
@@ -214,16 +215,16 @@ class Cumulative(CumulativeSubsurface if subflow == True else CumulativeSubsurfa
     #
     def update_cumulative(self, i, j, surface, subsurface, delta_t):
 
-        self.infiltration[i][j] += surface.infiltration*self.pixel_area
-        self.precipitation[i][j] += surface.cur_rain*self.pixel_area
+        self.infiltration[i][j] += surface.infiltration * self.pixel_area
+        self.precipitation[i][j] += surface.cur_rain * self.pixel_area
         self.V_sur[i][j] += surface.V_runoff
         self.V_sur_r[i][j] += surface.V_rest
         self.V_sur_tot[i][j] += surface.V_rest + surface.V_runoff
         self.inflow_sur[i][j] += surface.inflow_tm
-        self.sur_ret[i][j] += surface.cur_sur_ret*self.pixel_area
+        self.sur_ret[i][j] += surface.cur_sur_ret * self.pixel_area
 
-        q_sheet = surface.V_runoff/delta_t
-        q_rill = surface.V_runoff_rill/delta_t
+        q_sheet = surface.V_runoff / delta_t
+        q_rill = surface.V_runoff_rill / delta_t
         q_tot = q_sheet + q_rill
         if q_tot > self.q_sur_tot[i][j]:
             self.q_sur_tot[i][j] = q_tot

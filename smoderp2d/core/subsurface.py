@@ -29,7 +29,7 @@ class SubArrs:
         self.cum_percolation = float(0)
         self.percolation = float(0)
         self.vg_n = vg_n
-        self.vg_m = 1.0-1.0/vg_n
+        self.vg_m = 1.0 - 1.0 / vg_n
         self.vg_l = vg_l
 
 
@@ -39,7 +39,7 @@ class SubArrs:
 class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
     def __init__(self, L_sub, Ks, vg_n, vg_l):
 
-        if (Globals.r == None or Globals.r == None):
+        if (Globals.r is None or Globals.r is None):
             exit("Global variables are not assigned")
         super(SubsurfaceC, self).__init__()
 
@@ -51,7 +51,7 @@ class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
         for i in range(self.r):
             for j in range(self.c):
                 self.arr[i][j] = SubArrs(
-                    L_sub, Ks, vg_n, vg_l, mat_dmt[i][j]-L_sub, mat_dmt[i][j])
+                    L_sub, Ks, vg_n, vg_l, mat_dmt[i][j] - L_sub, mat_dmt[i][j])
         # raw_input()
 
         for i in self.rr:
@@ -65,18 +65,20 @@ class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
         self.darcy = darcy.darcy
 
     def slope_(self, i, j):
-        a = self.arr[i-1][j-1].H
-        b = self.arr[i-1][j].H
-        c = self.arr[i-1][j+1].H
-        d = self.arr[i][j-1].H
-        f = self.arr[i][j+1].H
-        g = self.arr[i+1][j-1].H
-        h = self.arr[i+1][j].H
-        k = self.arr[i+1][j+1].H
-        dzdx = ((c + 2.0*f + k) - (a + 2.0*d + g))/(8.0 * self.pixel_area)
-        dzdy = ((g + 2.0*h + k) - (a + 2.0*b + c))/(8.0 * self.pixel_area)
+        a = self.arr[i - 1][j - 1].H
+        b = self.arr[i - 1][j].H
+        c = self.arr[i - 1][j + 1].H
+        d = self.arr[i][j - 1].H
+        f = self.arr[i][j + 1].H
+        g = self.arr[i + 1][j - 1].H
+        h = self.arr[i + 1][j].H
+        k = self.arr[i + 1][j + 1].H
+        dzdx = ((c + 2.0 * f + k) - (a + 2.0 * d + g)) / \
+            (8.0 * self.pixel_area)
+        dzdy = ((g + 2.0 * h + k) - (a + 2.0 * b + c)) / \
+            (8.0 * self.pixel_area)
         nasobek = math.sqrt(pow(dzdx, 2) + pow(dzdy, 2))
-        diffslope = math.atan(nasobek) * math.pi/180
+        diffslope = math.atan(nasobek) * math.pi / 180
 
         return diffslope
 
@@ -90,7 +92,7 @@ class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
     def bilance(self, i, j, infilt, inflow, dt):
 
         arr = self.arr[i][j]
-        bil = infilt + arr.V_rest/self.pixel_area + inflow
+        bil = infilt + arr.V_rest / self.pixel_area + inflow
 
         #print bil, infilt , arr.V_rest/self.pixel_area , inflow
         percolation = self.calc_percolation(i, j, bil, dt)
@@ -109,9 +111,9 @@ class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
         if (bil > arr.L_sub):
             S = 1.0
         else:
-            S = bil/arr.L_sub
+            S = bil / arr.L_sub
 
-        perc = arr.Ks*self.Kr(S, arr.vg_l, arr.vg_m)*dt
+        perc = arr.Ks * self.Kr(S, arr.vg_l, arr.vg_m) * dt
         # jj bacha
         #perc = 0
         if (perc > bil):
@@ -123,7 +125,7 @@ class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
         arr = self.arr[i][j]
         if (bil > arr.L_sub):
             #print bil
-            exfilt = bil-arr.L_sub
+            exfilt = bil - arr.L_sub
             bil = arr.L_sub
             #print exfilt
         else:
@@ -153,7 +155,7 @@ class SubsurfaceC(Diffuse if Gl.diffuse == True else Kinematic, Size):
     def return_str_vals(self, i, j, sep, dt):
         arr = self.arr[i][j]
         # ';Sub_Water_level_[m];Sub_Flow_[m3/s];Sub_V_runoff[m3];Sub_V_rest[m3];Percolation[],exfiltration[];'
-        line = str(arr.h) + sep + str(arr.V_runoff/dt) + sep + str(arr.V_runoff) + sep + \
+        line = str(arr.h) + sep + str(arr.V_runoff / dt) + sep + str(arr.V_runoff) + sep + \
             str(arr.V_rest) + sep + str(arr.percolation) + \
             sep + str(arr.exfiltration)
         return line

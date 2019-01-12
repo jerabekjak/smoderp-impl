@@ -24,7 +24,8 @@ max_infilt_capa = 0.003  # [m]
 #
 class TimeStep:
 
-    def do_flow(self, rr, rc, surface, subsurface, delta_t, mat_efect_vrst, ratio, courant, itera, total_time, tz, sr):
+    def do_flow(self, rr, rc, surface, subsurface, delta_t,
+                mat_efect_vrst, ratio, courant, itera, total_time, tz, sr):
 
         rainfall, tz = rain_f.timestepRainfall(
             itera, total_time, delta_t, tz, sr)
@@ -47,7 +48,7 @@ class TimeStep:
                         i, j, surface.arr[i][j], delta_t, mat_efect_vrst[i][j], ratio)
                     subsurface.runoff(i, j, delta_t, mat_efect_vrst[i][j])
 
-                q_surface = q_sheet+q_rill
+                q_surface = q_sheet + q_rill
                 #print v_sheet,v_rill
                 v = max(v_sheet, v_rill)
                 co = 'sheet'
@@ -63,7 +64,8 @@ class TimeStep:
 
         return ratio, v_sheet, v_rill, rainfall, tz
 
-    def do_next_h(self, rr, rc, pixel_area, surface, subsurface, rain_arr, cumulative, hydrographs, rainfall, courant, total_time, delta_t, combinatIndex, NoDataValue, sum_interception, mat_efect_vrst, ratio, iter_):
+    def do_next_h(self, rr, rc, pixel_area, surface, subsurface, rain_arr, cumulative, hydrographs, rainfall,
+                  courant, total_time, delta_t, combinatIndex, NoDataValue, sum_interception, mat_efect_vrst, ratio, iter_):
 
         global infilt_capa
         global max_infilt_capa
@@ -79,7 +81,7 @@ class TimeStep:
             for i in rr:
                 for j in rc[i]:
                     hydrographs.write_hydrographs_record(
-                        i, j, ratio, courant.cour_most, courant.cour_most_rill, iter_, delta_t, total_time+delta_t, surface, subsurface, NS)
+                        i, j, ratio, courant.cour_most, courant.cour_most_rill, iter_, delta_t, total_time + delta_t, surface, subsurface, NS)
             return NS, sum_interception
 
         for iii in combinatIndex:
@@ -88,7 +90,7 @@ class TimeStep:
             s = iii[2]
             # jj * 100.0 !!! smazat
             iii[3] = infilt.phlilip(
-                k, s, delta_t, total_time-infilt_time, NoDataValue)
+                k, s, delta_t, total_time - infilt_time, NoDataValue)
             #print total_time-infilt_time, iii[3]*1000, k, s
 
         infilt.set_combinatIndex(combinatIndex)
@@ -123,8 +125,8 @@ class TimeStep:
                 #
                 # Surface BILANCE
                 #
-                surBIL = surface.arr[i][j].h_total_pre + NS + surface.arr[i][j].inflow_tm/pixel_area - (
-                    surface.arr[i][j].V_runoff/pixel_area + surface.arr[i][j].V_runoff_rill/pixel_area)
+                surBIL = surface.arr[i][j].h_total_pre + NS + surface.arr[i][j].inflow_tm / pixel_area - (
+                    surface.arr[i][j].V_runoff / pixel_area + surface.arr[i][j].V_runoff_rill / pixel_area)
 
                 #
                 # surface retention
@@ -158,9 +160,9 @@ class TimeStep:
 
                     h_sub = subsurface.runoff_stream_cell(i, j)
 
-                    inflowToReach = h_sub*pixel_area + surBIL*pixel_area
+                    inflowToReach = h_sub * pixel_area + surBIL * pixel_area
                     surface.reach_inflows(
-                        id_=int(surface_state-1000), inflows=inflowToReach)
+                        id_=int(surface_state - 1000), inflows=inflowToReach)
 
                 else:
                     surface.arr[i][j].h_total_new = surBIL
@@ -176,5 +178,5 @@ class TimeStep:
                 cumulative.update_cumulative(
                     i, j, surface.arr[i][j], subsurface, delta_t)
                 hydrographs.write_hydrographs_record(
-                    i, j, ratio, courant.cour_most, courant.cour_most_rill, iter_, delta_t, total_time+delta_t, surface, subsurface, NS)
+                    i, j, ratio, courant.cour_most, courant.cour_most_rill, iter_, delta_t, total_time + delta_t, surface, subsurface, NS)
         return NS, sum_interception

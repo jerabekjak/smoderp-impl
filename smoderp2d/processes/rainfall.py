@@ -101,20 +101,27 @@ class Rainfall():
     def __init__(self):
 
         self.tz = 0
+        self.tz_save = 0
         self.veg = Globals.get_mat_nan().copy()
         self.veg.fill(int(1))
-        self.tz = 0
+        self.veg_save = self.veg.copy()
         self.sum_interception = Globals.get_mat_nan().copy()
-        self.sum_interception.fill(int(1))
+        self.sum_interception.fill(int(0))
+        self.sum_interception_save = self.sum_interception.copy()
 
-    # Function returns a rainfall amount for current time step
-    #  if two or more rainfall records belongs to one time step
-    #  the function integrates the rainfall amount.
     def timestepRainfall(self, total_time, delta_t):
-        gl = Globals()
+        """Function returns a rainfall amount for current time step
+        if two or more rainfall records belongs to one time step
+        the function integrates the rainfall amount.
 
-        iterace = gl.itera
-        sr = gl.sr
+        :param float total_time: total time of the computation
+        :param float delta_t   : time step size
+
+        :return float: potential precipitation
+        """
+
+        iterace = Globals.itera
+        sr = Globals.sr
 
         z = self.tz
         # skontroluje jestli neni mimo srazkovy zaznam
@@ -157,6 +164,7 @@ class Rainfall():
         return rainfall
 
     def current_rain(self, i, j, potential_rain):
+        """ Reduces potetial rainfall by interception """
         ppl = Globals.get_ppl(i, j)
         pi = Globals.get_pi(i, j)
         if self.veg[i][j] != int(5):
@@ -177,3 +185,15 @@ class Rainfall():
             NS = potential_rain
 
         return NS
+
+    def save_rainfall_vars(self):
+        """ Store variables in case for iterations. """
+        self.veg_save = self.veg.copy()
+        self.sum_interception_save = self.sum_interception.copy()
+        self.tz_save = self.tz
+
+    def load_rainfall_vars(self):
+        """ Restore variables in case for iterations. """
+        self.veg = self.veg_save.copy()
+        self.sum_interception = self.sum_interception_save.copy()
+        self.tz = self.tz_save

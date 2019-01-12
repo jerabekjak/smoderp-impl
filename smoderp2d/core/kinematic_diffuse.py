@@ -25,7 +25,7 @@ class Diffuse(Mfda if Gl.mfda == True else D8):
 
     def __init__(self):
         prt.message("\tDiffuse approach")
-        if (Globals.r == None or Globals.r == None):
+        if (Globals.r is None or Globals.r is None):
             exit("Global variables are not assigned")
         r = Gl.r
         c = Gl.c

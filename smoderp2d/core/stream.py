@@ -8,7 +8,8 @@ import smoderp2d.io_functions.prt as prt
 
 class Reach():
 
-    def __init__(self, id_, POINT_X, POINT_Y, POINT_X_1, POINT_Y_1, to_node, length, sklon, smoderp, CISLO, TVAR, B, M, DRSNOST, Q365):
+    def __init__(self, id_, POINT_X, POINT_Y, POINT_X_1, POINT_Y_1,
+                 to_node, length, sklon, smoderp, CISLO, TVAR, B, M, DRSNOST, Q365):
 
         #TVAR = 1
         #print '\n!\n!\n!\ntvar je na tvrdo 1'
@@ -22,7 +23,7 @@ class Reach():
         self.to_node = to_node
         self.length = length
         if sklon < 0:
-            prt.message("Slope in reach part"+str(id) +
+            prt.message("Slope in reach part" + str(id) +
                         "indicated minus slope in stream")
         self.slope = abs(sklon)
         self.smoderp = smoderp
@@ -67,7 +68,8 @@ class Reach():
 #
 #  More details.
 
-# Bacha na id, je id v shp toku v sestupnem poradi. To musi jinak bude chyba ve tvorbe reach
+# Bacha na id, je id v shp toku v sestupnem poradi. To musi jinak bude
+# chyba ve tvorbe reach
 class Stream(object):
 
     # The constructor.
@@ -80,7 +82,9 @@ class Stream(object):
         # pak kouknout co je treba jen uvnitr tridy
         #self.temp_dp = sp.temp_dp
 
-        # listy v poradi 'FID' 'POINT_X' 'POINT_Y' 'POINT_X_1' 'POINT_Y_1' 'to_node' 'length' 'sklon' 'smoderp' 'CISLO' 'TVAR' 'B' 'M' 'DRSNOST' 'Q365'
+        # listy v poradi 'FID' 'POINT_X' 'POINT_Y' 'POINT_X_1' 'POINT_Y_1'
+        # 'to_node' 'length' 'sklon' 'smoderp' 'CISLO' 'TVAR' 'B' 'M' 'DRSNOST'
+        # 'Q365'
         self.toky = Gl.toky  # tu jsou nactena data z data preparation cca lajna 970
 
         self.nReaches = len(self.toky[0])
@@ -140,14 +144,14 @@ class Stream(object):
                 self.reach[id_].timeh_max = time
 
     def return_stream_str_vals(self, i, j, sep, dt, extraOut):
-        id_ = int(self.arr[i][j].state-1000)
+        id_ = int(self.arr[i][j].state - 1000)
         # Time;   V_runoff  ;   Q   ;    V_from_field  ;  V_rests_in_stream
         # print id_
         if not(extraOut):
             line = str(self.reach[id_].h) + sep + \
-                str(self.reach[id_].Q_out) + sep+str(self.reach[id_].V_out)
+                str(self.reach[id_].Q_out) + sep + str(self.reach[id_].V_out)
         else:
-            line = str(self.reach[id_].h) + sep+str(self.reach[id_].V_out) + sep + str(self.reach[id_].Q_out) + sep + \
+            line = str(self.reach[id_].h) + sep + str(self.reach[id_].V_out) + sep + str(self.reach[id_].Q_out) + sep + \
                 str(self.reach[id_].V_in_from_field) + \
                 sep + str(self.reach[id_].V_rest)
         return line

@@ -46,11 +46,11 @@ class Runoff():
         self.LS.solveStep(self.iter_crit)
         self.LS.total_time += self.iter_crit.dt
         self.iter_crit.check_time_step()
-        
+
         Logger.progress(0.,
-                    self.iter_crit.dt,
-                    self.iter_crit.iter_,
-                    self.LS.total_time)
+                        self.iter_crit.dt,
+                        self.iter_crit.iter_,
+                        self.LS.total_time)
 
         ok = 1
         while (self.LS.total_time <= gl.end_time):
@@ -59,7 +59,8 @@ class Runoff():
                 self.LS.hold = self.LS.hnew.copy()
             ok = self.LS.solveStep(self.iter_crit)
             if ok == 0:
-                timeperc = 100 * (self.LS.total_time + self.iter_crit.dt) / Globals.end_time
+                timeperc = 100 * (self.LS.total_time +
+                                  self.iter_crit.dt) / Globals.end_time
                 Logger.progress(
                     timeperc,
                     self.iter_crit.dt,
@@ -69,9 +70,10 @@ class Runoff():
                 Logger.warning("-" * 37)
                 Logger.warning('repeating time step')
                 Logger.warning("-" * 37)
-                
+
             if ok == 1:
-                timeperc = 100 * (self.LS.total_time + self.iter_crit.dt) / Globals.end_time
+                timeperc = 100 * (self.LS.total_time +
+                                  self.iter_crit.dt) / Globals.end_time
                 Logger.progress(
                     timeperc,
                     self.iter_crit.dt,

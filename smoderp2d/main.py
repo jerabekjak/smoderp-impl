@@ -11,7 +11,8 @@ The computing itself is performed in src.runoff
 """
 
 from smoderp2d.providers import BaseProvider
-    
+
+
 def run():
     # initialize provider
     provider = BaseProvider()
@@ -22,10 +23,11 @@ def run():
 
     # must be called after initialization
     from smoderp2d.runoff import Runoff
-    
+
     # the computation
     runoff = Runoff(provider)
     runoff.run()
+
 
 if __name__ == "__main__":
     run()

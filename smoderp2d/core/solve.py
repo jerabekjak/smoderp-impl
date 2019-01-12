@@ -1,8 +1,8 @@
 from smoderp2d.core.general import Globals
 from smoderp2d.tools.tools import make_ASC_raster
 from smoderp2d.tools.tools import make_sur_raster
-import smoderp2d.processes.rainfall as rain_f
-import smoderp2d.processes.infiltration as infilt
+
+
 import smoderp2d.flow_algorithm.D8 as D8_
 from smoderp2d.io_functions import hydrographs as wf
 
@@ -15,6 +15,14 @@ import sys
 import time
 
 
+
+def prt_arr(A):
+    """ Print csr_matrix into file and on the screen """
+    np.savetxt('arr.txt',A.toarray(), fmt='%1.4e', delimiter='\t')
+    print ('Printing array...')
+    Logger.info(A.toarray())
+    
+    
 def init_getIJel():
     """Documentation for a function init_getIJel()
 
@@ -23,7 +31,7 @@ def init_getIJel():
     odpovidajiciho radku a sloupce rasteru podle pozive v lin soustave
     a odpovidajiciho elementu v soustave podle sloupce a rarku v rasteru
 
-    return nEl      - pocet elementu v soustave
+    return nEl     - pocet elementu v soustave
     return getEl   - i j pole, obsahuje pozici v soustave
     return getElIN - i j pole, pozive vtekajicich elementu
     return getIJ   - vektor, vrati odpovidajici i j pro dany element v soustave
@@ -44,17 +52,12 @@ def init_getIJel():
     getElIN = []
 
     nEl = int(-1)
+    
     # prvni cyklus priradi
     # k i j bunky jeji poradi ve vektoru
     # a k elementu vektoru i j bunky
     for i in rr:
         for j in rc[i]:
-            nEl += int(1)
-            getIJ.append([i, j])
-            getEl[i][j] = nEl
-
-    for i in br:
-        for j in bc[i]:
             nEl += int(1)
             getIJ.append([i, j])
             getEl[i][j] = nEl
@@ -71,53 +74,33 @@ def init_getIJel():
                 bx = inflows[i][j][z][1]
                 iax = i + ax
                 jbx = j + bx
-                tmp[z] = getEl[iax][jbx]
+                if Globals.mat_boundary[iax][jbx] < 0.0 :
+                    tmp[z] = int(-99)
+                else :
+                    tmp[z] = getEl[iax][jbx]
 
             getElIN.append(tmp)
 
-    for i in br:
-        for j in bc[i]:
-            n = len(inflows[i][j])
-            tmp = [-int(99)] * n
+    return nEl, getEl, getElIN, getIJ
 
-            for z in range(n):
-                ax = inflows[i][j][z][0]
-                bx = inflows[i][j][z][1]
-                iax = i + ax
-                jbx = j + bx
-                tmp[z] = getEl[iax][jbx]
 
-            getElIN.append(tmp)
-
-    # toto je pokazde stejne
-    indptr = [0]
-    # toto je pokazde stejne
-    indices = []
-
-    for iel in range(nEl):
-        indices.append(iel)
-        for inel in getElIN[iel]:
-            indices.append(inel)
-        indptr.append(len(indices))
-
-    return nEl, getEl, getElIN, getIJ, indices, indptr
 
 
 class ImplicitSolver:
 
     def __init__(self, iter_crit):
 
+        gl = Globals()
         r = Globals.get_rows()
         c = Globals.get_cols()
 
-        # aktualni cas programu
         self.total_time = 0
 
-        self.nEl, self.getEl, self.getElIN, self.getIJ, self.indices, self.indptr = init_getIJel()
+        self.nEl, self.getEl, self.getElIN, self.getIJ = init_getIJel()
 
-        self.b = np.zeros([self.nEl], float)
-        self.hnew = np.ones([self.nEl], float)
-        self.hold = np.zeros([self.nEl], float)
+        self.b = np.zeros([self.nEl+1], float)
+        self.hnew = np.ones([self.nEl+1], float)
+        self.hold = np.zeros([self.nEl+1], float)
 
         # determine the sheet flow under supercritical flow
         self.flow_hcrit = np.zeros([self.nEl], float)
@@ -135,7 +118,7 @@ class ImplicitSolver:
         self.rill_count = 0
 
         # iteration criterion
-        self.err = 1e-5
+        self.err = 1e-7
 
         from smoderp2d.processes.surface import sheet_flowb_
         self.sheet_flow = sheet_flowb_
@@ -150,6 +133,12 @@ class ImplicitSolver:
 
         from smoderp2d.processes.rainfall import Rainfall
         self.rainfall = Rainfall()
+
+        from smoderp2d.processes.sur_retention import SurRetention
+        self.sur_ret = SurRetention()
+
+        from smoderp2d.processes.infiltration import Infiltration
+        self.infiltration = Infiltration()
 
         # opens files for storing hydrographs
         if Globals.points and Globals.points != "#":
@@ -180,108 +169,111 @@ class ImplicitSolver:
         # potential precipitation
         PS = self.rainfall.timestepRainfall(self.total_time, dt)
 
-        # prepares infiltration table
-        for iii in Globals.get_combinatIndex():
-            index = iii[0]
-            k = iii[1]
-            s = iii[2]
-            iii[3] = infilt.phlilip(
-                k, s, dt, self.total_time, Globals.get_NoDataValue())
+        # calculate current infiltration
+        self.infiltration.potential_infiltration(self.total_time, dt)
 
         # creates empty list for data
         data = []
         self.rill_count = 0
 
-        for iel in range(self.nEl):
+        # toto je pokazde jine
+        indptr = [0]
+        # toto je pokazde jine
+        indices = []
+
+        # takto puvodne ve funkci init_getIJel
+        # for iel in range(nEl):
+        # indices.append(iel)
+        # for inel in getElIN[iel]:
+        # indices.append(inel)
+        # indptr.append(len(indices))
+        
+        for iel in range(self.nEl+1):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
 
-            # infiltration
-            inf = infilt.philip_infiltration(
-                Globals.get_mat_inf_index(i, j), Globals.get_combinatIndex())
-            if inf >= self.hold[iel]:
-                inf = self.hold[iel]
+            
+            # overland outflow
+            if self.hnew[iel] > 0:
+                hcrit = Globals.get_hcrit(i, j)
+                a = Globals.get_aa(i, j)
+                b = Globals.get_b(i, j)
+                hsheet = min(hcrit, self.hnew[iel])
+                hrill = max(0, self.hnew[iel] - hcrit)
+                sf = self.sheet_flow(a, b, hsheet)
+                rf = 0
+                if (hrill > 0):
+                    self.rill_count += 1
+                    t1 = time.time()
+                    rf = self.rill_flow(
+                        i, j, hrill, dt) / self.hnew[iel]
+
+                data.append(
+                    1. + dt * Globals.dx * (sf) / Globals.pixel_area + dt * rf / Globals.pixel_area)
+            else:
+                data.append((1.))
+
+            indices.append(iel)
+
+            for inel in self.getElIN[iel]:
+                if inel >= 0 : # skip inflows from bc
+                    if self.hnew[inel] > 0:
+                        i = self.getIJ[inel][0]
+                        j = self.getIJ[inel][1]
+                        hcrit = Globals.get_hcrit(i, j)
+                        a = Globals.get_aa(i, j)
+                        b = Globals.get_b(i, j)
+                        hsheet = min(hcrit, self.hnew[inel])
+                        hrill = max(0, self.hnew[inel] - hcrit)
+                        sf = self.sheet_flow(a, b, hsheet)
+                        rf = 0
+                        if (hrill > 0):
+                            rf = self.rill_flow(
+                                i, j, hrill, dt) / self.hnew[iel]
+
+                        data.append(- dt * Globals.dx * (sf) / Globals.pixel_area -
+                                    dt * rf / Globals.pixel_area)
+                    else:
+                        data.append(0)
+                        
+                    indices.append(inel)
+
+
+            indptr.append(len(indices))
 
             # effective precipitation
             ES = self.rainfall.current_rain(i, j, PS)
+
+            inf = self.infiltration.philip_infiltration(i, j)
+            if inf >= ES:
+                inf = ES
             
-            # retention delete from the effective precipitation
-            ret = Globals.get_reten(i,j)
-            if ret >= ES:
-                Globals.set_reten(i,j,ret - ES)
-                ES = 0
-            else:
-                ES = min(ES,ES-ret)
-            
-
-            hcrit = Globals.get_hcrit(i, j)
-
-            self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
-            rf = sf = 0
-
-            if (self.hnew[iel] > hcrit):
-                self.rill_count += 1
-                hrill = self.hnew[iel] - hcrit
-                rf = self.rill_flow(
-                    i, j, hrill, dt) / self.hnew[iel]
-
-                self.b[iel] += - self.flow_hcrit[iel]
-
-            else:
-                a = Globals.get_aa(i, j)
-                b = Globals.get_b(i, j)
-                hsheet = max(0, self.hnew[iel])
-                sf = self.sheet_flow(a, b, hsheet) * Globals.dx
-
-            data.append(
-                1. / dt + Globals.dx * (sf) / Globals.pixel_area + rf / Globals.pixel_area)
-
-            for inel in self.getElIN[iel]:
-                i = self.getIJ[inel][0]
-                j = self.getIJ[inel][1]
-                hcrit = Globals.get_hcrit(i, j)
-                
-                rf = sf = 0
-                if (self.hnew[inel] > hcrit):
-                    hrill = self.hnew[inel] - hcrit
-                    rf = self.rill_flow(
-                        i, j, hrill, dt) / self.hnew[inel]
-                    
-                    self.b[iel] += self.flow_hcrit[inel]
-                    
-                else :
-                    a = Globals.get_aa(i, j)
-                    b = Globals.get_b(i, j)
-                    hsheet = max(0, self.hnew[iel])
-                    sf = self.sheet_flow(a, b, hsheet) * Globals.dx 
-
-                data.append(-Globals.dx * (sf) / Globals.pixel_area -
-                            rf / Globals.pixel_area)
-
-        self.A = csr_matrix((data, self.indices, self.indptr),
-                            shape=(self.nEl, self.nEl), dtype=float)
+            #self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
+            self.b[iel] = self.hold[iel] + ES - inf 
+        self.A = csr_matrix((data, indices, indptr),
+                            shape=(self.nEl+1, self.nEl+1), dtype=float)
 
     def solveStep(self, iter_crit):
         from scipy.sparse.linalg import spsolve
 
         hewp = self.hnew.copy()
+        self.rainfall.save_rainfall_vars()
 
         err = 1
 
         while (err > self.err):
-
+            self.rainfall.load_rainfall_vars()
             iter_crit.iter_up()
-            t1 = time.time()
             self.fillAmat(iter_crit.dt)
-            t2 = time.time()
             hewp = self.hnew.copy()
             self.hnew = spsolve(self.A, self.b)
-
-            if (iter_crit.crit_iter_check(self.total_time)):
+            if (iter_crit.max_iter_check(self.total_time)):
+                self.hnew = self.hold.copy()
                 return 0
 
             err = np.sum(hewp - self.hnew)**2.0
 
+        self.hnew = self.sur_ret.reduce_h(self.hnew, self.nEl, self.getIJ)
         # write hydrograph record
         for i in Globals.rr:
             for j in Globals.rc[i]:

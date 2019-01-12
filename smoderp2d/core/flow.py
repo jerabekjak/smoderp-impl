@@ -66,15 +66,15 @@ class D8(object):
         for z in range(len(self.inflows[i][j])):
             ax = self.inflows[i][j][z][0]
             bx = self.inflows[i][j][z][1]
-            iax = i+ax
-            jbx = j+bx
+            iax = i + ax
+            jbx = j + bx
             try:
                 insurfflow_from_cell = self.arr[iax][jbx].V_runoff
-            except:
+            except BaseException:
                 insurfflow_from_cell = 0.0
             try:
                 inrillflow_from_cell = self.arr[iax][jbx].V_runoff_rill
-            except:
+            except BaseException:
                 inrillflow_from_cell = 0.0
             inflow_from_cells = inflow_from_cells + \
                 insurfflow_from_cell + inrillflow_from_cell
@@ -112,26 +112,27 @@ class Mfda(object):
     def cell_runoff(self, i, j, sur=True):
         #print 'asdf'
         inflow_from_cells = \
-            self.inflows[i-1][j-1][1]*self.arr[i-1][j-1].V_runoff_pre +\
-            self.inflows[i-1][j][2]*self.arr[i-1][j].V_runoff_pre +\
-            self.inflows[i-1][j+1][3]*self.arr[i-1][j+1].V_runoff_pre +\
-            self.inflows[i][j-1][0]*self.arr[i][j-1].V_runoff_pre +\
-            self.inflows[i][j+1][4]*self.arr[i][j+1].V_runoff_pre +\
-            self.inflows[i+1][j-1][7]*self.arr[i+1][j-1].V_runoff_pre +\
-            self.inflows[i+1][j][6]*self.arr[i+1][j].V_runoff_pre +\
-            self.inflows[i+1][j+1][5]*self.arr[i+1][j+1].V_runoff_pre
+            self.inflows[i - 1][j - 1][1] * self.arr[i - 1][j - 1].V_runoff_pre +\
+            self.inflows[i - 1][j][2] * self.arr[i - 1][j].V_runoff_pre +\
+            self.inflows[i - 1][j + 1][3] * self.arr[i - 1][j + 1].V_runoff_pre +\
+            self.inflows[i][j - 1][0] * self.arr[i][j - 1].V_runoff_pre +\
+            self.inflows[i][j + 1][4] * self.arr[i][j + 1].V_runoff_pre +\
+            self.inflows[i + 1][j - 1][7] * self.arr[i + 1][j - 1].V_runoff_pre +\
+            self.inflows[i + 1][j][6] * self.arr[i + 1][j].V_runoff_pre +\
+            self.inflows[i + 1][j + 1][5] * self.arr[i + 1][j + 1].V_runoff_pre
 
         if isRill and sur:
             for z in range(len(self.inflowsRill[i][j])):
                 ax = self.inflowsRill[i][j][z][0]
                 bx = self.inflowsRill[i][j][z][1]
-                iax = i+ax
-                jbx = j+bx
-                if (self.arr[i][j].state == 1) or (self.arr[i][j].state == 2):  # rill
+                iax = i + ax
+                jbx = j + bx
+                if (self.arr[i][j].state == 1) or (
+                        self.arr[i][j].state == 2):  # rill
                     try:
                         # toto jeste predelat u ryh
                         inflow_from_cells += self.V_runoff_rill_pre[iax][jbx]
-                    except:
+                    except BaseException:
                         inflow_from_cells += 0.0
 
         return inflow_from_cells

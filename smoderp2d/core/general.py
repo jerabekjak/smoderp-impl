@@ -2,17 +2,19 @@
 import math
 import sys
 
+
 class Size:
     @staticmethod
     def size(arrayNBytes, m=1.0):
-        """Method to compute size of class arrays.    
-        
+        """Method to compute size of class arrays.
+
         :param <numpy array>.nbytes arrayNBytes:
         :param float m: value in denominator to get bytes, kilobytes
         (m=2**10), megabytes (m=2**10+m**10) and so on.
         """
         # arrayNBytes eq self.state.nbytes
         return (self.n * arrayNBytes) / m
+
 
 class Globals:
     """Gloobals contains global variables from data_preparation, in
@@ -126,30 +128,30 @@ class Globals:
     maxdt = None
     # ???
     extraOut = None
-    
+
     def get_pixel_area(self):
         return self.pixel_area
-    
+
     @classmethod
     def get_rows(self):
         return self.r
-    
+
     @classmethod
     def get_cols(self):
         return self.c
- 
+
     @classmethod
     def get_rrows(self):
         return self.rr
-    
+
     @classmethod
     def get_rcols(self):
         return self.rc
- 
+
     @classmethod
     def get_bor_rows(self):
         return self.br
-    
+
     @classmethod
     def get_bor_cols(self):
         return self.bc
@@ -192,40 +194,44 @@ class Globals:
     def get_combinatIndex(self):
         return self.combinatIndex
 
+    @classmethod
     def get_delta_t(self):
         return self.delta_t
-    
-    @classmethod
-    def get_pi(cls,i,j):
-        return cls.mat_pi[i][j]
-    
-    @classmethod
-    def get_ppl(cls,i,j):
-        return cls.mat_ppl[i][j]
 
     @classmethod
-    def get_mat_inf_index(self,i,j):
-        return self.mat_inf_index[i][j]
-    
+    def get_pi(cls, i, j):
+        return cls.mat_pi[i][j]
+
     @classmethod
-    def get_hcrit(self,i,j):
+    def get_ppl(cls, i, j):
+        return cls.mat_ppl[i][j]
+
+    def get_surface_retention(self):
+        return self.surface_retention
+
+    @classmethod
+    def get_mat_inf_index(self, i, j):
+        return self.mat_inf_index[i][j]
+
+    @classmethod
+    def get_hcrit(self, i, j):
         return self.mat_hcrit[i][j]
 
     @classmethod
-    def get_aa(self,i,j):
+    def get_aa(self, i, j):
         return self.mat_aa[i][j]
-    
+
     @classmethod
-    def get_b(self,i,j):
+    def get_b(self, i, j):
         return self.mat_b[i][j]
 
     @classmethod
-    def get_reten(self,i,j):
-        return - self.mat_reten[i][j]
-    
+    def get_reten(self, i, j):
+        return self.mat_reten[i][j]
+
     @classmethod
-    def set_reten(self,i,j, val):
-        self.mat_reten[i][j] = val
+    def get_mat_reten(self):
+        return self.mat_reten
 
     def get_mat_fd(self):
         return self.mat_fd
@@ -233,12 +239,12 @@ class Globals:
     def get_mat_dmt(self):
         return self.mat_dmt
 
-    def get_efect_contour(self,i,j):
+    def get_efect_contour(self, i, j):
         return self.mat_efect_vrst[i][j]
 
     def get_slope(self, i, j):
         return self.mat_slope[i][j]
-    
+
     @classmethod
     def get_mat_nan(cls):
         return cls.mat_nan
@@ -248,13 +254,13 @@ class Globals:
 
     def get_n(self, i, j):
         return self.mat_n[i][j]
-    
+
     def get_rill_width(self, i, j):
         return self.mat_rill_width[i][j]
-    
+
     def set_rill_width(self, i, j, rill_width):
         self.mat_rill_width[i][j] = rill_width
-    
+
     def get_points(self):
         return self.points
 
