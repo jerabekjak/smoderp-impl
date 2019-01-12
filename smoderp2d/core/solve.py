@@ -15,14 +15,13 @@ import sys
 import time
 
 
-
 def prt_arr(A):
     """ Print csr_matrix into file and on the screen """
-    np.savetxt('arr.txt',A.toarray(), fmt='%1.4e', delimiter='\t')
+    np.savetxt('arr.txt', A.toarray(), fmt='%1.4e', delimiter='\t')
     print ('Printing array...')
     Logger.info(A.toarray())
-    
-    
+
+
 def init_getIJel():
     """Documentation for a function init_getIJel()
 
@@ -52,7 +51,7 @@ def init_getIJel():
     getElIN = []
 
     nEl = int(-1)
-    
+
     # prvni cyklus priradi
     # k i j bunky jeji poradi ve vektoru
     # a k elementu vektoru i j bunky
@@ -74,16 +73,14 @@ def init_getIJel():
                 bx = inflows[i][j][z][1]
                 iax = i + ax
                 jbx = j + bx
-                if Globals.mat_boundary[iax][jbx] < 0.0 :
+                if Globals.mat_boundary[iax][jbx] < 0.0:
                     tmp[z] = int(-99)
-                else :
+                else:
                     tmp[z] = getEl[iax][jbx]
 
             getElIN.append(tmp)
 
     return nEl, getEl, getElIN, getIJ
-
-
 
 
 class ImplicitSolver:
@@ -153,7 +150,7 @@ class ImplicitSolver:
                 )
 
     def fillAmat(self, dt):
-        
+
         # potential precipitation
         PS = self.rainfall.timestepRainfall(self.total_time, dt)
 
@@ -175,12 +172,11 @@ class ImplicitSolver:
         # for inel in getElIN[iel]:
         # indices.append(inel)
         # indptr.append(len(indices))
-        
+
         for iel in range(self.nEl+1):
             i = self.getIJ[iel][0]
             j = self.getIJ[iel][1]
 
-            
             # overland outflow
             if self.hnew[iel] > 0:
                 hcrit = Globals.get_hcrit(i, j)
@@ -204,7 +200,7 @@ class ImplicitSolver:
             indices.append(iel)
 
             for inel in self.getElIN[iel]:
-                if inel >= 0 : # skip inflows from bc
+                if inel >= 0:  # skip inflows from bc
                     if self.hnew[inel] > 0:
                         i = self.getIJ[inel][0]
                         j = self.getIJ[inel][1]
@@ -223,9 +219,8 @@ class ImplicitSolver:
                                     dt * rf / Globals.pixel_area)
                     else:
                         data.append(0)
-                        
-                    indices.append(inel)
 
+                    indices.append(inel)
 
             indptr.append(len(indices))
 
@@ -235,9 +230,9 @@ class ImplicitSolver:
             inf = self.infiltration.philip_infiltration(i, j)
             if inf >= ES:
                 inf = ES
-            
+
             #self.b[iel] = self.hold[iel] / dt + ES / dt - inf / dt
-            self.b[iel] = self.hold[iel] + ES - inf 
+            self.b[iel] = self.hold[iel] + ES - inf
         self.A = csr_matrix((data, indices, indptr),
                             shape=(self.nEl+1, self.nEl+1), dtype=float)
 
