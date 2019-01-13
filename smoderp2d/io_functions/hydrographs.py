@@ -67,14 +67,6 @@ class Hydrographs:
         point_int = [i for j, i in enumerate(point_int) if j not in del_]
         ipi -= len(del_)
 
-        # for ttt in point_int:
-            # print ttt
-
-        # for ip in range(ipi):
-            # l = point_int[ip][1]
-            # m = point_int[ip][2]
-            # print mat_tok_usek[ip][jp]
-
         counter = 0
 
         # mat_tok_usek is alway presented if stream == True
@@ -192,69 +184,7 @@ class Hydrographs:
                     line += '\n'
                     self.files[ip].writelines(line)   
             
-        
-  
 
-
-        
-        
-        
-        
-        
-        
-
-        ##ratio = fc.ratio
-        ##total_time = fc.total_time + dt
-        ##iter_ = fc.iter_
-        #currRain = 0    
-
-        ##courantMost = courant.cour_most
-        ##courantRill = courant. cour_most_rill
-        #inStream = False
-
-        #if inStream:
-            #for ip in self.inStream:
-                #l = self.point_int[ip][1]
-                #m = self.point_int[ip][2]
-                #line = str(total_time) + sep
-                #line += str(dt) + sep
-                #line += str(currRain) + sep
-                #line += surface.return_stream_str_vals(l, m, sep, dt, extraout)
-                #line += '\n'
-                #self.files[ip].writelines(line)
-
-        #else:
-            #for ip in self.inSurface:
-                #l = self.point_int[ip][1]
-                #m = self.point_int[ip][2]
-                #if i == l and j == m:
-                    #line = str(total_time) + sep
-                    #line += str(dt) + sep
-                    #line += str(currRain) + sep
-                    #linebil = surface.return_str_vals(l, m, sep, dt, extraout)
-                    #line += linebil[0] + sep
-                    #line += str(linebil[1])  # + sep
-                    ## line += subsurface.return_str_vals(l,m,sep,dt) + sep   #
-                    ## prozatim
-                    #if extraout:
-                        #line += sep + str(surface.arr[l][m].V_to_rill) + sep
-                        #line += str(ratio) + sep
-                        #line += str(courantMost) + sep
-                        #line += str(courantRill) + sep
-                        #line += str(iter_)
-
-                    #line += '\n'
-                    #self.files[ip].writelines(line)
-
-        
-        
-    # def write_hydrographs_usek(self,dt,total_time,surface,currRain,sep=';'):
-        # line = str(total_time) + sep
-        # line += str(dt) + sep
-        # line += str(currRain) + sep
-        # line += surface.return_stream_str_vals(0,0,sep,dt)
-        # line += '\n'
-        # self.tokusek.writelines(line)
 
     def closeHydrographs(self):
         for i in range(self.n):
