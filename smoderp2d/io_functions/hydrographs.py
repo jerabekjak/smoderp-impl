@@ -144,19 +144,17 @@ class Hydrographs:
         prt.message("Hydrographs files has been created...")
 
     def write_hydrographs_record(
-            self, i, j, iter_crit, LS, first=False, isStream = False,  sep=';'):
+            self, i, j, iter_crit, LS, first=False, isStream=False,  sep=';'):
         gl = Gl()
-        
-        if (first) :
+
+        if (first):
             for ip in self.inSurface:
                 l = self.point_int[ip][1]
                 m = self.point_int[ip][2]
                 if i == l and j == m:
-                    hcrit = gl.get_hcrit(i,j)
-                    #Logger.debug('hcrit natvrdo')
-                    #hcrit = 0.01 
-                    hsheet = min(hcrit,LS.hold[LS.getEl[i][j]])
-                    hrill  = max(0,    LS.hold[LS.getEl[i][j]]-hcrit)
+                    hcrit = gl.get_hcrit(i, j)
+                    hsheet = min(hcrit, LS.hold[LS.getEl[i][j]])
+                    hrill = max(0, LS.hold[LS.getEl[i][j]]-hcrit)
                     line = str(LS.total_time + iter_crit.dt) + sep
                     line += str(hsheet) + sep
                     line += str(hrill) + sep
@@ -164,17 +162,15 @@ class Hydrographs:
                     line += str(iter_crit.dt) + sep
                     line += str(iter_crit.iter_)
                     line += '\n'
-                    self.files[ip].writelines(line)    
-        else :
+                    self.files[ip].writelines(line)
+        else:
             for ip in self.inSurface:
                 l = self.point_int[ip][1]
                 m = self.point_int[ip][2]
                 if i == l and j == m:
-                    hcrit = gl.get_hcrit(i,j)
-                    #Logger.debug('hcrit natvrdo')
-                    #hcrit = 0.01
-                    hsheet = min(hcrit,LS.hnew[LS.getEl[i][j]])
-                    hrill  = max(0,    LS.hnew[LS.getEl[i][j]]-hcrit)
+                    hcrit = gl.get_hcrit(i, j)
+                    hsheet = min(hcrit, LS.hnew[LS.getEl[i][j]])
+                    hrill = max(0, LS.hnew[LS.getEl[i][j]]-hcrit)
                     line = str(LS.total_time + iter_crit.dt) + sep
                     line += str(hsheet) + sep
                     line += str(hrill) + sep
@@ -182,9 +178,7 @@ class Hydrographs:
                     line += str(iter_crit.dt) + sep
                     line += str(iter_crit.iter_)
                     line += '\n'
-                    self.files[ip].writelines(line)   
-            
-
+                    self.files[ip].writelines(line)
 
     def closeHydrographs(self):
         for i in range(self.n):
