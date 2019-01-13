@@ -139,16 +139,6 @@ class ImplicitSolver:
         else:
             self.hydrographs = wf.HydrographsPass()
 
-        for i in Globals.rr:
-            for j in Globals.rc[i]:
-                self.hydrographs.write_hydrographs_record(
-                    i,
-                    j,
-                    iter_crit,
-                    self,
-                    first=True
-                )
-
     def fillAmat(self, dt):
 
         # potential precipitation
@@ -202,18 +192,18 @@ class ImplicitSolver:
             for inel in self.getElIN[iel]:
                 if inel >= 0:  # skip inflows from bc
                     if self.hnew[inel] > 0:
-                        i = self.getIJ[inel][0]
-                        j = self.getIJ[inel][1]
-                        hcrit = Globals.get_hcrit(i, j)
-                        a = Globals.get_aa(i, j)
-                        b = Globals.get_b(i, j)
+                        ii = self.getIJ[inel][0]
+                        jj = self.getIJ[inel][1]
+                        hcrit = Globals.get_hcrit(ii, jj)
+                        a = Globals.get_aa(ii, jj)
+                        b = Globals.get_b(ii, jj)
                         hsheet = min(hcrit, self.hnew[inel])
                         hrill = max(0, self.hnew[inel] - hcrit)
                         sf = self.sheet_flow(a, b, hsheet)
                         rf = 0
                         if (hrill > 0):
                             rf = self.rill_flow(
-                                i, j, hrill, dt) / self.hnew[iel]
+                                ii, jj, hrill, dt) / self.hnew[iel]
 
                         data.append(- dt * Globals.dx * (sf) / Globals.pixel_area -
                                     dt * rf / Globals.pixel_area)
